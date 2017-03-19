@@ -4,12 +4,12 @@ GOS=$(wildcard *.go)
 
 all: dnetgtk
 
-bindata.go: $(GLADES)
+ui-bindata.go: $(GLADES)
 	-rm -v ui/*~
-	go-bindata ui
+	go-bindata -o ui-bindata.go ui
 
 
-dnetgtk: $(GOS)
-	go build
+dnetgtk: $(GOS) ui-bindata.go
+	go build -v
 
 

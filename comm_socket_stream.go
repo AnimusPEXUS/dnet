@@ -8,15 +8,15 @@ import (
 
 type CommSocketStreamServerPool struct {
 	Pool           []*CommSocketStreamServer
-	dnetcontroller *DNetController
+	controller *Controller
 }
 
 func NewCommSocketStreamServerPool(
-	dnetcontroller *DNetController,
+	controller *Controller,
 ) *CommSocketStreamServerPool {
 
 	ret := new(CommSocketStreamServerPool)
-	ret.dnetcontroller = dnetcontroller
+	ret.controller = controller
 
 	return ret
 }
@@ -49,7 +49,7 @@ type CommSocketStreamServer struct {
 
 func NewCommSocketStreamServer(
 	net, laddr string,
-	rpc_comm *DNetController,
+	rpc_comm *Controller,
 ) *CommSocketStreamServer {
 	ret := new(CommSocketStreamServer)
 	ret.mut = new(sync.Mutex)
@@ -63,8 +63,8 @@ func (self *CommSocketStreamServer) GetListener() net.Listener {
 	return self.listener
 }
 
-func (self *CommSocketStreamServer) LocalAddr() net.Addr {
-	return self.listener.LocalAddr()
+func (self *CommSocketStreamServer) Addr() net.Addr {
+	return self.listener.Addr()
 }
 
 func (self *CommSocketStreamServer) Start() error {
@@ -73,8 +73,8 @@ func (self *CommSocketStreamServer) Start() error {
 		return errors.New("not stopped")
 	}
 
-	ret.mut.Lock()
-	defer ret.mut.Unlock()
+	self.mut.Lock()
+	defer self.mut.Unlock()
 
 	self.starting = true
 	defer func() { self.starting = false }()
@@ -93,8 +93,8 @@ func (self *CommSocketStreamServer) Start() error {
 
 func (self *CommSocketStreamServer) Stop() error {
 
-	ret.mut.Lock()
-	defer ret.mut.Unlock()
+	self.mut.Lock()
+	defer self.mut.Unlock()
 
 	self.stopping = true
 	defer func() { self.stopping = false }()
@@ -107,8 +107,8 @@ func (self *CommSocketStreamServer) Stop() error {
 }
 
 func (self *CommSocketStreamServer) GetStatus() string {
-	ret.mut.Lock()
-	defer ret.mut.Unlock()
+	self.mut.Lock()
+	defer self.mut.Unlock()
 	if self.working && !self.starting && !self.stopping {
 		return "working"
 	} else if !self.working && !self.starting && !self.stopping {

@@ -1,34 +1,34 @@
 package dnet
 
-const (
-	DNET_MAGIC_NUMBER = [4]byte{68, 110, 101, 116}
+var (
+	DNET_MAGIC_NUMBER [4]byte = [4]byte{68, 110, 101, 116}
 )
 
 const (
 	/* unauthenticated */
 
-	RPC_MESSAGE_CODE_HELLO             = iota /* 3 */
-	RPC_MESSAGE_CODE_BYE               = iota /* 2  */
-	RPC_MESSAGE_CODE_TELL_YOUR_VERSION = iota
+	RPC_MESSAGE_CODE_HELLO = iota
+	RPC_MESSAGE_CODE_BYE
+	RPC_MESSAGE_CODE_TELL_YOUR_VERSION
 
 	// client gives it's address, server checks it. success - authenticated
-	RPC_MESSAGE_CODE_AUTHENTICATE = iota
+	RPC_MESSAGE_CODE_AUTHENTICATE
 
 	/* client authenticated */
 
 	// Client checks server address. success ==  (two-way) authentication
 	// established
-	RPC_MESSAGE_CODE_TELL_YOUR_ADDRESS  = iota
-	RPC_MESSAGE_CODE_PROVE_YOUR_ADDRESS = iota
+	RPC_MESSAGE_CODE_TELL_YOUR_ADDRESS
+	RPC_MESSAGE_CODE_PROVE_YOUR_ADDRESS
 
 	/* both (two-way) authenticated */
 
-	RPC_MESSAGE_CODE_DO_YOU_SEE_ADDRESS                    = iota
-	RPC_MESSAGE_CODE_TELL_KNOWN_ADDRESSES                  = iota
-	RPC_MESSAGE_CODE_I_SEE_ADDRESS                         = iota /* 1 */
-	RPC_MESSAGE_CODE_ESTABLISH_PROXY_CONNECTION_TO_ADDRESS = iota
-	RPC_MESSAGE_CODE_LIST_YOUR_SERVICES                    = iota
-	RPC_MESSAGE_CODE_CONNECT_TO_SERVICE                    = iota
+	RPC_MESSAGE_CODE_DO_YOU_SEE_ADDRESS
+	RPC_MESSAGE_CODE_TELL_KNOWN_ADDRESSES
+	RPC_MESSAGE_CODE_I_SEE_ADDRESS
+	RPC_MESSAGE_CODE_ESTABLISH_PROXY_CONNECTION_TO_ADDRESS
+	RPC_MESSAGE_CODE_LIST_YOUR_SERVICES
+	RPC_MESSAGE_CODE_CONNECT_TO_SERVICE
 )
 
 /*

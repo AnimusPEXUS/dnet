@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -76,10 +76,26 @@ func UIWindowLoginNew(preset_entry_name string) *UIWindowLogin {
 			if err != nil {
 				panic(err.Error)
 			}
-			controller := NewController(
+			controller, err := NewController(
 				txt,
 				"",
 			)
+			if err != nil {
+				glib.IdleAdd(
+					func() {
+						d := gtk.MessageDialogNew(
+							ret.root,
+							0,
+							gtk.MESSAGE_ERROR,
+							gtk.BUTTONS_OK,
+							"Error creating controller: "+err.Error(),
+						)
+						d.Run()
+						d.Destroy()
+					},
+				)
+				return
+			}
 			controller.ShowMainWindow()
 			win.root.Destroy()
 		},
