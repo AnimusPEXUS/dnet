@@ -90,6 +90,8 @@
   </object>
   <object class="GtkWindow" id="root">
     <property name="can_focus">False</property>
+    <property name="window_position">center</property>
+    <property name="gravity">center</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -197,7 +199,7 @@
                   <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="yalign">1</property>
+                    <property name="valign">end</property>
                     <property name="stock">gtk-network</property>
                     <property name="icon_size">6</property>
                   </object>
@@ -226,8 +228,8 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="valign">start</property>
                     <property name="label" translatable="yes">v0.0</property>
-                    <property name="yalign">0</property>
                     <attributes>
                       <attribute name="size" value="12000"/>
                     </attributes>
@@ -264,8 +266,8 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Storage</property>
-                    <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                       <attribute name="underline" value="True"/>
@@ -362,8 +364,8 @@
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">start</property>
                         <property name="label" translatable="yes">Keys</property>
-                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                           <attribute name="underline" value="True"/>
@@ -516,8 +518,8 @@ Press Save, to save Private Key into storage after You generate or edit it.</pro
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">start</property>
                         <property name="label" translatable="yes">TLS Certificate</property>
-                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                           <attribute name="underline" value="True"/>
@@ -660,8 +662,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Cert Requests</property>
-                    <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                       <attribute name="underline" value="True"/>
@@ -707,8 +709,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Certificates</property>
-                    <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                       <attribute name="underline" value="True"/>
@@ -878,8 +880,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Networks</property>
-                    <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                       <attribute name="underline" value="True"/>
@@ -957,7 +959,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="spacing">5</property>
                         <property name="layout_style">spread</property>
                         <child>
-                          <object class="GtkButton">
+                          <object class="GtkButton" id="button_create_new_preset">
                             <property name="label" translatable="yes">Add..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -992,8 +994,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">start</property>
                         <property name="label" translatable="yes">Added</property>
-                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -1007,8 +1009,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">start</property>
                         <property name="label" translatable="yes">Available Modules</property>
-                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -1024,7 +1026,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="can_focus">True</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView">
+                          <object class="GtkTreeView" id="tw_networks_presets">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="vexpand">True</property>
@@ -1046,7 +1048,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="vexpand">True</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView">
+                          <object class="GtkTreeView" id="tw_networks_modules">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child internal-child="selection">
@@ -1097,8 +1099,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Services</property>
-                    <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                       <attribute name="underline" value="True"/>

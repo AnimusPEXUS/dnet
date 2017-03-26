@@ -10,6 +10,8 @@ type NetworkModule interface {
 
 	WorkingName() string
 
+	SampleConfig() string
+
 	CanExplore() bool
 	CanBeacon() bool
 	CanListen() bool

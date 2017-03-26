@@ -7,8 +7,8 @@ var (
 const (
 	/* unauthenticated */
 
-	RPC_MESSAGE_CODE_HELLO = iota
-	RPC_MESSAGE_CODE_BYE
+	RPC_MESSAGE_CODE_BYE = iota
+	RPC_MESSAGE_CODE_HELLO
 	RPC_MESSAGE_CODE_TELL_YOUR_VERSION
 
 	// client gives it's address, server checks it. success - authenticated

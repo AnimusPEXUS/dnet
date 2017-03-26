@@ -37,6 +37,7 @@ type UIWindowMain struct {
 	button_save_own_certificate     *gtk.Button
 	button_load_own_certificate     *gtk.Button
 	button_refresh_network_modules  *gtk.Button
+	button_create_new_preset        *gtk.Button
 	mi_storage                      *gtk.MenuItem
 	mi_keys                         *gtk.MenuItem
 	mi_networks                     *gtk.MenuItem
@@ -45,6 +46,15 @@ type UIWindowMain struct {
 	box_keys                        *gtk.Box
 	box_certificate                 *gtk.Box
 	notebook_main                   *gtk.Notebook
+
+	tw_networks_presets *gtk.TreeView
+	tw_networks_modules *gtk.TreeView
+
+	networks_presets *gtk.ListStore
+	networks_modules *gtk.ListStore
+
+	services_presets *gtk.ListStore
+	services_modules *gtk.ListStore
 
 	key_editor_own  *UIKeyCertEditor
 	cert_editor_own *UIKeyCertEditor
@@ -139,6 +149,12 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 	}
 
 	{
+		t0, _ := builder.GetObject("button_create_new_preset")
+		t1, _ := t0.(*gtk.Button)
+		ret.button_create_new_preset = t1
+	}
+
+	{
 		t0, _ := builder.GetObject("notebook_main")
 		t1, _ := t0.(*gtk.Notebook)
 		ret.notebook_main = t1
@@ -184,6 +200,167 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		t0, _ := builder.GetObject("box_certificate")
 		t1, _ := t0.(*gtk.Box)
 		ret.box_certificate = t1
+	}
+
+	{
+		t0, err := builder.GetObject("tw_networks_presets")
+		if err != nil {
+			panic(err.Error())
+		}
+		t1, ok := t0.(*gtk.TreeView)
+		if !ok {
+			panic("error")
+		}
+		ret.tw_networks_presets = t1
+	}
+
+	{
+		t0, _ := builder.GetObject("tw_networks_modules")
+		t1, _ := t0.(*gtk.TreeView)
+		ret.tw_networks_modules = t1
+	}
+
+	{
+		ret.networks_presets, _ = gtk.ListStoreNew(
+			glib.TYPE_STRING,  // preset name
+			glib.TYPE_BOOLEAN, // enabled?
+			glib.TYPE_BOOLEAN, // auto-enable?
+			glib.TYPE_BOOLEAN, // active?
+			glib.TYPE_BOOLEAN, // has errors?
+			glib.TYPE_STRING,  // brief info
+		)
+
+		ret.networks_modules, _ = gtk.ListStoreNew(
+			glib.TYPE_STRING, // Name
+			glib.TYPE_STRING, // Work Name
+			glib.TYPE_STRING, // Descr
+		)
+
+		ret.tw_networks_presets.SetModel(ret.networks_presets)
+		ret.tw_networks_modules.SetModel(ret.networks_modules)
+
+		{
+			// setup coumns in tw_networks_presets
+			{
+				rend, err := gtk.CellRendererTextNew()
+				if err != nil {
+					panic("error")
+				}
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Name",
+					rend,
+					"text",
+					0,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_presets.AppendColumn(column)
+			}
+			{
+				rend, err := gtk.CellRendererToggleNew()
+				if err != nil {
+					panic("error")
+				}
+				rend.SetActivatable(false)
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Enabled?",
+					rend,
+					"active",
+					1,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_presets.AppendColumn(column)
+			}
+			{
+				rend, err := gtk.CellRendererToggleNew()
+				if err != nil {
+					panic("error")
+				}
+				rend.SetActivatable(false)
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Active?",
+					rend,
+					"active",
+					2,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_presets.AppendColumn(column)
+			}
+			{
+				rend, err := gtk.CellRendererToggleNew()
+				if err != nil {
+					panic("error")
+				}
+				rend.SetActivatable(false)
+				column, _ := gtk.TreeViewColumnNewWithAttribute(
+					"Errors?",
+					rend,
+					"active",
+					3,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_presets.AppendColumn(column)
+			}
+		}
+
+		{
+			// setup coumns in tw_networks_modules
+			{
+				rend, err := gtk.CellRendererTextNew()
+				if err != nil {
+					panic("error")
+				}
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Name",
+					rend,
+					"text",
+					0,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_modules.AppendColumn(column)
+			}
+			{
+				rend, err := gtk.CellRendererTextNew()
+				if err != nil {
+					panic("error")
+				}
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Work Name",
+					rend,
+					"text",
+					1,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_modules.AppendColumn(column)
+			}
+			{
+				rend, err := gtk.CellRendererTextNew()
+				if err != nil {
+					panic("error")
+				}
+				column, err := gtk.TreeViewColumnNewWithAttribute(
+					"Description",
+					rend,
+					"text",
+					2,
+				)
+				if err != nil {
+					panic("error")
+				}
+				ret.tw_networks_modules.AppendColumn(column)
+			}
+		}
 	}
 
 	ret.button_generate_own_key_pair.Connect(
@@ -369,7 +546,7 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 			page *gtk.Widget,
 			page_num uint,
 		) {
-			show := page_num != 7
+			show := page_num != 8
 
 			if show {
 				ret.button_home.Show()
@@ -419,7 +596,7 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 	ret.button_home.Connect(
 		"clicked",
 		func() {
-			ret.notebook_main.SetCurrentPage(7)
+			ret.notebook_main.SetCurrentPage(8)
 		},
 	)
 
@@ -528,7 +705,37 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 
 	ret.button_refresh_network_modules.Connect(
 		"clicked",
-		func() { ret.RefteshNetworkModulesList() },
+		func() {
+			ret.RefteshNetworkModulesList()
+		},
+	)
+
+	ret.button_create_new_preset.Connect(
+		"clicked",
+		func() {
+
+			sel, _ := ret.tw_networks_modules.GetSelection()
+
+			model, iter, ok := sel.GetSelected()
+
+			if ok {
+				// model := self.networks_modules
+
+				val, _ := model.(*gtk.TreeModel).GetValue(iter, 1)
+				val_str, _ := val.GetString()
+				fmt.Println("Value", val_str)
+
+				/*
+					w := UINetworkModuleConfigEditorNew(
+						ret.win,
+						false,
+						"",
+						""
+					)
+					w.Show()
+				*/
+			}
+		},
 	)
 
 	{
@@ -554,7 +761,24 @@ func (self *UIWindowMain) Show() {
 }
 
 func (self *UIWindowMain) RefteshNetworkModulesList() {
+
+	model := self.networks_modules
+	for {
+		iter, _ := model.GetIterFirst()
+		if iter != nil {
+			model.Remove(iter)
+		} else {
+			break
+		}
+	}
+
 	for _, i := range dnet.BUILTIN_NETWORK_MODULES {
-		fmt.Println(i.Name())
+		iter := model.Append()
+		model.Set(
+			iter,
+			[]int{0, 1, 2},
+			[]interface{}{i.Name(), i.WorkingName(), i.Description()},
+		)
+		// fmt.Println(i.Name(), i.WorkingName(), i.Description())
 	}
 }
