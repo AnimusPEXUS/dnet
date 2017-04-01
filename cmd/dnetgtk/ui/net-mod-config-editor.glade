@@ -5,6 +5,8 @@
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
+    <property name="default_width">500</property>
+    <property name="default_height">500</property>
     <property name="gravity">center</property>
     <child>
       <object class="GtkGrid">
@@ -50,6 +52,7 @@
               <object class="GtkTextView" id="tw_config_text">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="monospace">True</property>
               </object>
             </child>
           </object>

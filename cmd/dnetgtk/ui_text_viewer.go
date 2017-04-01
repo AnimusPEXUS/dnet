@@ -43,6 +43,7 @@ func UITextViewerNew(
 		t0, _ := builder.GetObject("root")
 		t1, _ := t0.(*gtk.Window)
 		ret.root = t1
+
 	}
 
 	{
@@ -63,6 +64,8 @@ func UITextViewerNew(
 		ret.button_close = t1
 	}
 
+	ret.root.SetTransientFor(ret.transient)
+
 	ret.button_save.Connect(
 		"clicked",
 		func() {
@@ -72,7 +75,7 @@ func UITextViewerNew(
 			}
 
 			if ret.transient != nil {
-				dialog.SetTransientFor(ret.transient)
+				dialog.SetTransientFor(ret.root)
 			}
 
 			chooser, err := gtk.FileChooserWidgetNew(gtk.FILE_CHOOSER_ACTION_SAVE)

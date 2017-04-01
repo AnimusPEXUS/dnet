@@ -1,15 +1,14 @@
 package main
 
 import (
-	//"database/sql"
-	//"fmt"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type OwnData struct {
-	ValueName string
+	ValueName string `gorm:"primary_key"`
 	Value     string
 }
 
@@ -19,15 +18,12 @@ func (OwnData) TableName() string {
 }
 */
 
-/*
-type Networks struct {
-	gorm.Model
-	Name                      string
-	NetworkModuleName         string
-	NetworkModuleSettingsData string
-	AutoRun                   bool
+type NetworkPreset struct {
+	Name      string `gorm:"primary_key"`
+	Module    string
+	Autostart bool
+	Config    string
 }
-*/
 
 type DB struct {
 	filename string
@@ -64,7 +60,15 @@ func NewDB(filename, password string) (*DB, error) {
 	}
 
 	if !db.HasTable(&OwnData{}) {
-		db.CreateTable(&OwnData{})
+		if err := db.CreateTable(&OwnData{}).Error; err != nil {
+			fmt.Println("error creating OwnData table")
+		}
+	}
+
+	if !db.HasTable(&NetworkPreset{}) {
+		if err := db.CreateTable(&NetworkPreset{}).Error; err != nil {
+			fmt.Println("error creating NetworkPreset table")
+		}
 	}
 
 	return ret, nil
@@ -117,4 +121,80 @@ func (self *DB) GetOwnTLSCertificate() (string, error) {
 		return "", err
 	}
 	return t.Value, nil
+}
+
+func (self *DB) SetNetPreset(
+	name string,
+	module string,
+	autostart bool,
+	config string,
+) error {
+
+	var pst NetworkPreset
+
+	if err := self.db.First(
+		&pst,
+		&NetworkPreset{Name: name},
+	).Error; err != nil {
+		pst.Module = module
+		pst.Autostart = autostart
+		pst.Config = config
+		self.db.Save(&pst)
+	} else {
+		self.db.Create(
+			&NetworkPreset{
+				Name:      name,
+				Module:    module,
+				Autostart: autostart,
+				Config:    config,
+			},
+		)
+	}
+
+	return nil
+}
+
+func (self *DB) GetNetPreset(name string) (
+	found bool,
+	module string,
+	autostart bool,
+	config string,
+) {
+
+	found = false
+	module = ""
+	autostart = false
+	config = ""
+
+	var pst NetworkPreset
+
+	if err := self.db.First(
+		&pst,
+		&NetworkPreset{Name: name},
+	).Error; err == nil {
+		found = true
+		module = pst.Module
+		autostart = pst.Autostart
+		config = pst.Config
+	}
+
+	return
+}
+
+func (self *DB) DelNetPreset(name string) {
+	self.db.Delete(&NetworkPreset{Name: name})
+}
+
+func (self *DB) LstNetPresets() []string {
+	ret := make([]string, 0)
+
+	var pst []NetworkPreset
+
+	if err := self.db.Find(&pst).Error; err == nil {
+		for _, i := range pst {
+			ret = append(ret, i.Name)
+		}
+	}
+
+	return ret
 }

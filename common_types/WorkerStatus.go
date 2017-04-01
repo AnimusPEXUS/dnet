@@ -30,3 +30,29 @@ func (self *WorkerStatus) Working() bool {
 func (self *WorkerStatus) Stopped() bool {
 	return !self.starting && !self.stopping && !self.working
 }
+
+func (self *WorkerStatus) String() string {
+
+	if self.Starting() && self.Stopping() {
+		return "invalid starting and stopping"
+
+	} else if (self.Starting() && self.Stopping()) || self.Working() {
+		return "invalid (starting or stopping) and working"
+
+	} else if self.Starting() {
+		return "starting"
+
+	} else if self.Stopping() {
+		return "stopping"
+
+	} else if self.Working() {
+		return "working"
+
+	} else if self.Stopped() {
+		return "stopped"
+
+	} else {
+		return "unknown"
+	}
+
+}

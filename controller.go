@@ -4,7 +4,8 @@ type Controller struct {
 }
 
 func NewController() (*Controller, error) {
-	return new(Controller), nil
+	ret := new(Controller)
+	return ret, nil
 }
 
 func (self *Controller) Start() error {

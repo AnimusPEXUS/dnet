@@ -91,9 +91,9 @@ func (self *Module) SampleConfig() string {
 
 	k = s.Key("bind")
 	k.Comment =
-		"depending on bind_by value, set this to interface name" +
-			" (e.g. lo, eth0,enp0s31f6 etc.)" +
-			" or to ip address. special values under development now, please wait.."
+		"depending on bind_by value, set this to interface name\n" +
+			"; (e.g. lo, eth0, enp0s31f6 etc.) or to ip address.\n" +
+			"; 'special' values under development now, please wait.."
 	k.SetValue("xxx")
 
 	b := bytes.Buffer{}

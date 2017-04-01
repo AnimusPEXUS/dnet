@@ -9,7 +9,7 @@ ui-bindata.go: $(GLADES)
 	go-bindata -o ui-bindata.go ui
 
 
-dnetgtk: $(GOS) ui-bindata.go
+dnetgtk: $(GOS) ui-bindata.go Makefile
 	go build -v
 
 
