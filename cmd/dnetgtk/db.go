@@ -19,10 +19,10 @@ func (OwnData) TableName() string {
 */
 
 type NetworkPreset struct {
-	Name      string `gorm:"primary_key"`
-	Module    string
-	Autostart bool
-	Config    string
+	Name    string `gorm:"primary_key"`
+	Module  string
+	Enabled bool
+	Config  string
 }
 
 type DB struct {
@@ -126,7 +126,7 @@ func (self *DB) GetOwnTLSCertificate() (string, error) {
 func (self *DB) SetNetPreset(
 	name string,
 	module string,
-	autostart bool,
+	enabled bool,
 	config string,
 ) error {
 
@@ -137,16 +137,16 @@ func (self *DB) SetNetPreset(
 		&NetworkPreset{Name: name},
 	).Error; err != nil {
 		pst.Module = module
-		pst.Autostart = autostart
+		pst.Enabled = enabled
 		pst.Config = config
 		self.db.Save(&pst)
 	} else {
 		self.db.Create(
 			&NetworkPreset{
-				Name:      name,
-				Module:    module,
-				Autostart: autostart,
-				Config:    config,
+				Name:    name,
+				Module:  module,
+				Enabled: enabled,
+				Config:  config,
 			},
 		)
 	}
@@ -157,13 +157,13 @@ func (self *DB) SetNetPreset(
 func (self *DB) GetNetPreset(name string) (
 	found bool,
 	module string,
-	autostart bool,
+	enabled bool,
 	config string,
 ) {
 
 	found = false
 	module = ""
-	autostart = false
+	enabled = false
 	config = ""
 
 	var pst NetworkPreset
@@ -174,7 +174,7 @@ func (self *DB) GetNetPreset(name string) (
 	).Error; err == nil {
 		found = true
 		module = pst.Module
-		autostart = pst.Autostart
+		enabled = pst.Enabled
 		config = pst.Config
 	}
 

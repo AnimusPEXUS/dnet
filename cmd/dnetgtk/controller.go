@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"bitbucket.org/AnimusPEXUS/dnet"
 )
@@ -109,6 +110,7 @@ func (self *Controller) DeleteNetworkPreset(name string) error {
 func (self *Controller) AddNetworkPreset(
 	name string,
 	module string,
+	enabled bool,
 	config string,
 ) error {
 
@@ -119,7 +121,7 @@ func (self *Controller) AddNetworkPreset(
 	cnp := ControllerNetworkPresetNew(
 		name,
 		module,
-		false,
+		enabled,
 		config,
 	)
 
@@ -151,4 +153,22 @@ func (self *Controller) ChangeNetworkPresetConfig(
 	}
 
 	return ret
+}
+
+func (self *Controller) RestorePresetsFromStorage() {
+	lst := self.DB.LstNetPresets()
+	for _, name := range lst {
+		found, module, enabled, config := self.DB.GetNetPreset(name)
+		if !found {
+			fmt.Printf("error: storage does not have network preset %s\n", name)
+		} else {
+			self.AddNetworkPreset(
+				name,
+				module,
+				enabled,
+				config,
+			)
+		}
+	}
+
 }

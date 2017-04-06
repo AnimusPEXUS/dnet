@@ -102,7 +102,7 @@ func UINetworkModuleConfigEditorNew(
 			)
 		} else {
 			t = fmt.Sprintf(
-				`Editing preset %s for %s module`,
+				`Editing preset %s of module %s`,
 				preset_name,
 				module_name,
 			)
@@ -167,6 +167,7 @@ func UINetworkModuleConfigEditorNew(
 			err := controller.AddNetworkPreset(
 				name,
 				module,
+				false,
 				config,
 			)
 

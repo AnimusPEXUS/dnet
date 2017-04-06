@@ -29,8 +29,8 @@ func (self *ControllerNetworkPresetExt) Module() string {
 	return self.a.Module()
 }
 
-func (self *ControllerNetworkPresetExt) AutoStart() bool {
-	return self.a.AutoStart()
+func (self *ControllerNetworkPresetExt) Enabled() bool {
+	return self.a.Enabled()
 }
 
 func (self *ControllerNetworkPresetExt) Config() string {
@@ -38,21 +38,21 @@ func (self *ControllerNetworkPresetExt) Config() string {
 }
 
 type ControllerNetworkPreset struct {
-	name      string
-	module    string
-	autostart bool
-	config    string
+	name    string
+	module  string
+	enabled bool
+	config  string
 }
 
 func ControllerNetworkPresetNew(
 	name string,
 	module string,
-	autostart bool,
+	enabled bool,
 	config string,
 ) *ControllerNetworkPreset {
 	ret := new(ControllerNetworkPreset)
 	ret.name = name
-	ret.autostart = autostart
+	ret.enabled = enabled
 	ret.config = config
 	return ret
 }
@@ -70,12 +70,12 @@ func (self *ControllerNetworkPreset) SetModule(value string) {
 	return
 }
 
-func (self *ControllerNetworkPreset) AutoStart() bool {
-	return self.autostart
+func (self *ControllerNetworkPreset) Enabled() bool {
+	return self.enabled
 }
 
-func (self *ControllerNetworkPreset) SetAutoStart(value bool) {
-	self.autostart = value
+func (self *ControllerNetworkPreset) SetEnabled(value bool) {
+	self.enabled = value
 	return
 }
 

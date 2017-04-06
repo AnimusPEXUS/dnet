@@ -2,6 +2,7 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkSizeGroup"/>
   <object class="GtkMenu" id="menu1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -183,7 +184,7 @@
           <object class="GtkNotebook" id="notebook_main">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="show_tabs">False</property>
+            <property name="tab_pos">left</property>
             <property name="show_border">False</property>
             <property name="scrollable">True</property>
             <child>
@@ -263,24 +264,6 @@
                 <property name="orientation">vertical</property>
                 <property name="spacing">5</property>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="label" translatable="yes">Storage</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                      <attribute name="underline" value="True"/>
-                      <attribute name="size" value="16000"/>
-                    </attributes>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
                   <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -356,33 +339,10 @@
                 <property name="orientation">vertical</property>
                 <property name="spacing">5</property>
                 <child>
-                  <object class="GtkBox">
+                  <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="spacing">5</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="halign">start</property>
-                        <property name="label" translatable="yes">Keys</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                          <attribute name="underline" value="True"/>
-                          <attribute name="size" value="16000"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">On this page You can manage Your Private Key.
+                    <property name="tooltip_text" translatable="yes">On this page You can manage Your Private Key.
 
 DNet assumes usage of private keys, which already contain wheyr public part.
 
@@ -391,14 +351,8 @@ So DNet getting Public Key from Private Key, when it's needed.
 Use button Generate, to create new Private Key, or press Edit and then load Private Key from some file, or paste it in Full Key editing field.
 
 Press Save, to save Private Key into storage after You generate or edit it.</property>
-                        <property name="stock">gtk-dialog-question</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
+                    <property name="halign">start</property>
+                    <property name="stock">gtk-dialog-question</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -510,45 +464,16 @@ Press Save, to save Private Key into storage after You generate or edit it.</pro
                 <property name="orientation">vertical</property>
                 <property name="spacing">5</property>
                 <child>
-                  <object class="GtkBox">
+                  <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="spacing">5</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="halign">start</property>
-                        <property name="label" translatable="yes">TLS Certificate</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                          <attribute name="underline" value="True"/>
-                          <attribute name="size" value="16000"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">On this page You can manage Your TLS certificate, which is used to encrypt and entrust unsecured connections, such as TCP/IP
+                    <property name="tooltip_text" translatable="yes">On this page You can manage Your TLS certificate, which is used to encrypt and entrust unsecured connections, such as TCP/IP
 
 Button Generate creates new TLS certificate.
 
 Use Save/Load button to save/load certificate to/from storage.</property>
-                        <property name="stock">gtk-dialog-question</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
+                    <property name="halign">start</property>
+                    <property name="stock">gtk-dialog-question</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -877,24 +802,6 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                 <property name="orientation">vertical</property>
                 <property name="spacing">5</property>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="label" translatable="yes">Networks</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                      <attribute name="underline" value="True"/>
-                      <attribute name="size" value="16000"/>
-                    </attributes>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
                   <object class="GtkGrid">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -906,10 +813,10 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="can_focus">False</property>
                         <property name="orientation">vertical</property>
                         <property name="spacing">5</property>
-                        <property name="layout_style">spread</property>
+                        <property name="layout_style">start</property>
                         <child>
-                          <object class="GtkButton" id="button_start_network_preset">
-                            <property name="label" translatable="yes">Start</property>
+                          <object class="GtkButton" id="button_refresh_network_presets">
+                            <property name="label" translatable="yes">Refresh</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -921,8 +828,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_stop_network_preset">
-                            <property name="label" translatable="yes">Stop</property>
+                          <object class="GtkButton" id="button_enable_network_preset">
+                            <property name="label" translatable="yes">Enable</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -934,21 +841,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkToggleButton" id="button_autostart_network_preset">
-                            <property name="label" translatable="yes">AutoStart</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="button_edit_network_preset">
-                            <property name="label" translatable="yes">Edit</property>
+                          <object class="GtkButton" id="button_disable_network_preset">
+                            <property name="label" translatable="yes">Disable</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -960,8 +854,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_delete_network_preset">
-                            <property name="label" translatable="yes">Delete</property>
+                          <object class="GtkButton" id="button_edit_network_preset">
+                            <property name="label" translatable="yes">Edit..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -973,8 +867,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_refresh_network_presets">
-                            <property name="label" translatable="yes">Refresh</property>
+                          <object class="GtkButton" id="button_remove_network_preset">
+                            <property name="label" translatable="yes">Remove</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -983,6 +877,19 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button1">
+                            <property name="label" translatable="yes">Errors..</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">5</property>
                           </packing>
                         </child>
                       </object>
@@ -997,10 +904,10 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="can_focus">False</property>
                         <property name="orientation">vertical</property>
                         <property name="spacing">5</property>
-                        <property name="layout_style">spread</property>
+                        <property name="layout_style">start</property>
                         <child>
-                          <object class="GtkButton" id="button_create_new_preset">
-                            <property name="label" translatable="yes">Add..</property>
+                          <object class="GtkButton" id="button_refresh_network_modules">
+                            <property name="label" translatable="yes">Refresh</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -1012,8 +919,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_refresh_network_modules">
-                            <property name="label" translatable="yes">Refresh</property>
+                          <object class="GtkButton" id="button_create_new_preset">
+                            <property name="label" translatable="yes">New Preset..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -1026,8 +933,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         </child>
                       </object>
                       <packing>
-                        <property name="left_attach">2</property>
-                        <property name="top_attach">1</property>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">3</property>
                       </packing>
                     </child>
                     <child>
@@ -1035,7 +942,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="halign">start</property>
-                        <property name="label" translatable="yes">Added</property>
+                        <property name="label" translatable="yes">Presets</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -1057,8 +964,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         </attributes>
                       </object>
                       <packing>
-                        <property name="left_attach">2</property>
-                        <property name="top_attach">0</property>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">2</property>
                         <property name="width">2</property>
                       </packing>
                     </child>
@@ -1102,15 +1009,15 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         </child>
                       </object>
                       <packing>
-                        <property name="left_attach">3</property>
-                        <property name="top_attach">1</property>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">3</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="position">0</property>
                   </packing>
                 </child>
               </object>
@@ -1381,5 +1288,17 @@ Use Save/Load button to save/load certificate to/from storage.</property>
     <child type="titlebar">
       <placeholder/>
     </child>
+  </object>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="button_refresh_network_presets"/>
+      <widget name="button_enable_network_preset"/>
+      <widget name="button_disable_network_preset"/>
+      <widget name="button_edit_network_preset"/>
+      <widget name="button_remove_network_preset"/>
+      <widget name="button1"/>
+      <widget name="button_refresh_network_modules"/>
+      <widget name="button_create_new_preset"/>
+    </widgets>
   </object>
 </interface>
