@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"bitbucket.org/AnimusPEXUS/dnet"
+	"bitbucket.org/AnimusPEXUS/dnet/application_modules/pm"
+	"bitbucket.org/AnimusPEXUS/dnet/network_modules/tcpip"
 )
 
 const CONFIG_DIR = "~/.config/DNet"
@@ -35,7 +37,7 @@ func NewController(db_file string, password string) (*Controller, error) {
 		ret.DB = t
 	}
 
-	ret.window_main = UIWindowMainNew(ret)
+	ret.network_presets = make([]*ControllerNetworkPresetAndInstance, 0)
 
 	if cntrlr, err := dnet.NewController(); err != nil {
 		return nil, err
@@ -43,7 +45,16 @@ func NewController(db_file string, password string) (*Controller, error) {
 		ret.dnet_controller = cntrlr
 	}
 
-	ret.network_presets = make([]*ControllerNetworkPresetAndInstance, 0)
+	// network modules
+	ret.dnet_controller.AppendNetworkModule(tcpip.NewModule())
+
+	// application modules
+	ret.dnet_controller.AppendApplicationModule(pm.NewModule())
+
+	// Next line requires modules to be present already
+	ret.RestorePresetsFromStorage()
+
+	ret.window_main = UIWindowMainNew(ret)
 
 	return ret, nil
 }
@@ -63,6 +74,7 @@ func (self *Controller) ShowMainWindow() {
 	return
 }
 
+/*
 func (self *Controller) NetworkPresetsCopy() []*ControllerNetworkPresetExt {
 	ret := make([]*ControllerNetworkPresetExt, len(self.network_presets))
 	for _, i := range self.network_presets {
@@ -70,6 +82,7 @@ func (self *Controller) NetworkPresetsCopy() []*ControllerNetworkPresetExt {
 	}
 	return ret
 }
+*/
 
 func (self *Controller) NetworkPresetList() []string {
 	ret := make([]string, 0)
@@ -88,6 +101,17 @@ func (self *Controller) HasNetworkPresetName(name string) bool {
 	return false
 }
 
+func (self *Controller) GasNetworkPresetByName(
+	name string,
+) *ControllerNetworkPresetAndInstance {
+	for _, i := range self.network_presets {
+		if i.Name() == name {
+			return i
+		}
+	}
+	return nil
+}
+
 func (self *Controller) DeleteNetworkPreset(name string) error {
 	for ii, i := range self.network_presets {
 		if i.Name() == name {
@@ -104,18 +128,23 @@ func (self *Controller) DeleteNetworkPreset(name string) error {
 			break
 		}
 	}
+	self.DB.DelNetPreset(name)
 	return nil
 }
 
-func (self *Controller) AddNetworkPreset(
+func (self *Controller) addNetworkPreset(
 	name string,
 	module string,
 	enabled bool,
 	config string,
+	avoid_db_save bool,
 ) error {
 
 	if self.HasNetworkPresetName(name) {
-		return errors.New("Already has this preset")
+		return errors.New(
+			"already has preset with same name." +
+				" choose new name or edit existing.",
+		)
 	}
 
 	cnp := ControllerNetworkPresetNew(
@@ -125,19 +154,70 @@ func (self *Controller) AddNetworkPreset(
 		config,
 	)
 
-	a := &ControllerNetworkPresetAndInstance{
-		ControllerNetworkPreset: *cnp,
-		NetworkInstance:         nil,
+	if a, err := ControllerNetworkPresetAndInstanceNew(
+		cnp,
+		self.dnet_controller,
+	); err != nil {
+		panic("can't ControllerNetworkPresetAndInstanceNew(): " + err.Error())
+	} else {
+		self.network_presets = append(self.network_presets, a)
 	}
 
-	self.network_presets = append(self.network_presets, a)
+	if avoid_db_save == false {
+		self.DB.SetNetPreset(
+			name,
+			module,
+			enabled,
+			config,
+		)
+	}
 
 	return nil
 }
 
+func (self *Controller) AddNetworkPreset(
+	name string,
+	module string,
+	enabled bool,
+	config string,
+) error {
+	return self.addNetworkPreset(name, module, enabled, config, false)
+}
+
+func (self *Controller) ChangeNetworkPresetEnabled(
+	name string,
+	value bool,
+) error {
+	ret := error(nil)
+	for _, i := range self.network_presets {
+		if i.Name() == name {
+
+			if value {
+				i.NetworkInstance.Start()
+			} else {
+				i.NetworkInstance.Stop()
+			}
+
+			_, module, _, config := self.DB.GetNetPreset(name)
+
+			self.DB.SetNetPreset(
+				name,
+				module,
+				value,
+				config,
+			)
+
+			break
+
+		}
+	}
+
+	return ret
+}
+
 func (self *Controller) ChangeNetworkPresetConfig(
 	name string,
-	value string,
+	config string,
 ) error {
 	ret := error(nil)
 	for _, i := range self.network_presets {
@@ -145,7 +225,17 @@ func (self *Controller) ChangeNetworkPresetConfig(
 			if !i.NetworkInstance.Status().Stopped() {
 				ret = errors.New("Can't change while not stopped")
 			} else {
-				i.SetConfig(value)
+				i.NetworkInstance.SetConfig(config)
+
+				_, module, enabled, _ := self.DB.GetNetPreset(name)
+
+				self.DB.SetNetPreset(
+					name,
+					module,
+					enabled,
+					config,
+				)
+
 				ret = nil
 			}
 			break
@@ -160,13 +250,14 @@ func (self *Controller) RestorePresetsFromStorage() {
 	for _, name := range lst {
 		found, module, enabled, config := self.DB.GetNetPreset(name)
 		if !found {
-			fmt.Printf("error: storage does not have network preset %s\n", name)
+			fmt.Println("error: storage does not have such network preset")
 		} else {
-			self.AddNetworkPreset(
+			self.addNetworkPreset(
 				name,
 				module,
 				enabled,
 				config,
+				true,
 			)
 		}
 	}

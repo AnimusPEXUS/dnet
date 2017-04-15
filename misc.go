@@ -11,3 +11,7 @@ var VALID_PRESET_NAME_RE *regexp.Regexp = regexp.MustCompile(
 func IsValidPresetName(value string) bool {
 	return VALID_PRESET_NAME_RE.Match([]byte(value))
 }
+
+func IsValidModuleName(value string) bool {
+	return IsValidPresetName(value)
+}

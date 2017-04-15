@@ -12,8 +12,10 @@ type UIWindowMain struct {
 	controller *Controller
 
 	*UIWindowMainTabKeys
-	*UIWindowMainTabNetworks
 	*UIWindowMainTabTLSCertificate
+
+	//*UIWindowMainTabNetworks
+	*UIWindowMainTabApplications
 
 	win *gtk.Window
 
@@ -31,13 +33,11 @@ type UIWindowMain struct {
 	mi_storage      *gtk.MenuItem
 	mi_keys         *gtk.MenuItem
 	mi_networks     *gtk.MenuItem
+	mi_applications *gtk.MenuItem
 	mi_tls_cert     *gtk.MenuItem
 	mi_about        *gtk.MenuItem
 
 	notebook_main *gtk.Notebook
-
-	services_presets *gtk.ListStore
-	services_modules *gtk.ListStore
 }
 
 func UIWindowMainNew(controller *Controller) *UIWindowMain {
@@ -62,17 +62,6 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 	}
 
 	{
-		if res, err := UIWindowMainTabNetworksNew(
-			builder,
-			ret,
-		); err == nil {
-			ret.UIWindowMainTabNetworks = res
-		} else {
-			panic(err.Error())
-		}
-	}
-
-	{
 		if res, err := UIWindowMainTabKeysNew(
 			builder,
 			ret,
@@ -89,6 +78,17 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 			ret,
 		); err == nil {
 			ret.UIWindowMainTabTLSCertificate = res
+		} else {
+			panic(err.Error())
+		}
+	}
+
+	{
+		if res, err := UIWindowMainTabApplicationsNew(
+			builder,
+			ret,
+		); err == nil {
+			ret.UIWindowMainTabApplications = res
 		} else {
 			panic(err.Error())
 		}
@@ -154,13 +154,19 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		ret.mi_networks = t1
 	}
 
+	{
+		t0, _ := builder.GetObject("mi_applications")
+		t1, _ := t0.(*gtk.MenuItem)
+		ret.mi_applications = t1
+	}
+
 	ret.notebook_main.Connect(
 		"switch-page",
 		func(notebook *gtk.Notebook,
 			page *gtk.Widget,
 			page_num uint,
 		) {
-			show := page_num != 8
+			show := page_num != 7
 
 			if show {
 				ret.notebook_main.SetShowTabs(true)
@@ -202,7 +208,7 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		},
 	)
 
-	ret.mi_networks.Connect(
+	ret.mi_applications.Connect(
 		"activate",
 		func() {
 			ret.notebook_main.SetCurrentPage(6)
@@ -212,7 +218,7 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 	ret.button_home.Connect(
 		"clicked",
 		func() {
-			ret.notebook_main.SetCurrentPage(8)
+			ret.notebook_main.SetCurrentPage(7)
 		},
 	)
 
@@ -222,13 +228,6 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 			fmt.Println("toggled")
 		},
 	)
-
-	{
-		ret.cert_editor_own = UIKeyCertEditorNew(ret.win, "certificate")
-		r := ret.cert_editor_own.GetRoot()
-		ret.box_certificate.Add(r)
-		r.SetHExpand(true)
-	}
 
 	return ret
 }

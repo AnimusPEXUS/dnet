@@ -244,5 +244,12 @@ func UIWindowMainTabTLSCertificateNew(
 		},
 	)
 
+	{
+		ret.cert_editor_own = UIKeyCertEditorNew(ret.main_window.win, "certificate")
+		r := ret.cert_editor_own.GetRoot()
+		ret.box_certificate.Add(r)
+		r.SetHExpand(true)
+	}
+
 	return ret, nil
 }

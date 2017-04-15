@@ -187,12 +187,6 @@ func UINetworkModuleConfigEditorNew(
 				)
 				return
 			} else {
-				controller.DB.SetNetPreset(
-					name,
-					module,
-					false,
-					config,
-				)
 				glib.IdleAdd(
 					func() {
 						d := gtk.MessageDialogNew(

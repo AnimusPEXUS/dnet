@@ -2,7 +2,6 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkSizeGroup"/>
   <object class="GtkMenu" id="menu1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -21,18 +20,10 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="mi_networks">
+      <object class="GtkMenuItem" id="mi_applications">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Networks</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem" id="mi_services">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Services</property>
+        <property name="label" translatable="yes">Applications</property>
         <property name="use_underline">True</property>
       </object>
     </child>
@@ -795,8 +786,6 @@ Use Save/Load button to save/load certificate to/from storage.</property>
               <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_left">5</property>
-                <property name="margin_right">5</property>
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
                 <property name="orientation">vertical</property>
@@ -815,7 +804,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="spacing">5</property>
                         <property name="layout_style">start</property>
                         <child>
-                          <object class="GtkButton" id="button_refresh_network_presets">
+                          <object class="GtkButton" id="button_refresh_application_presets">
                             <property name="label" translatable="yes">Refresh</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -828,7 +817,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_enable_network_preset">
+                          <object class="GtkButton" id="button_enable_application_preset">
                             <property name="label" translatable="yes">Enable</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -841,7 +830,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_disable_network_preset">
+                          <object class="GtkButton" id="button_disable_application_preset">
                             <property name="label" translatable="yes">Disable</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -854,7 +843,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_edit_network_preset">
+                          <object class="GtkButton" id="button_edit_application_preset">
                             <property name="label" translatable="yes">Edit..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -867,7 +856,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_remove_network_preset">
+                          <object class="GtkButton" id="button_remove_application_preset">
                             <property name="label" translatable="yes">Remove</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -880,8 +869,8 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button1">
-                            <property name="label" translatable="yes">Errors..</property>
+                          <object class="GtkButton" id="button_status_application_preset">
+                            <property name="label" translatable="yes">Status..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -906,7 +895,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="spacing">5</property>
                         <property name="layout_style">start</property>
                         <child>
-                          <object class="GtkButton" id="button_refresh_network_modules">
+                          <object class="GtkButton" id="button_refresh_application_modules">
                             <property name="label" translatable="yes">Refresh</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -919,7 +908,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_create_new_preset">
+                          <object class="GtkButton" id="button_create_application_preset">
                             <property name="label" translatable="yes">New Preset..</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -977,7 +966,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="vexpand">True</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView" id="tw_networks_presets">
+                          <object class="GtkTreeView" id="tw_application_presets">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child internal-child="selection">
@@ -999,7 +988,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                         <property name="vexpand">True</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView" id="tw_networks_modules">
+                          <object class="GtkTreeView" id="tw_application_modules">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child internal-child="selection">
@@ -1029,216 +1018,10 @@ Use Save/Load button to save/load certificate to/from storage.</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Networks</property>
+                <property name="label" translatable="yes">Applications</property>
               </object>
               <packing>
                 <property name="position">6</property>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="margin_left">5</property>
-                <property name="margin_right">5</property>
-                <property name="margin_top">5</property>
-                <property name="margin_bottom">5</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">5</property>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="label" translatable="yes">Services</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                      <attribute name="underline" value="True"/>
-                      <attribute name="size" value="16000"/>
-                    </attributes>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkGrid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="row_spacing">5</property>
-                    <property name="column_spacing">5</property>
-                    <property name="column_homogeneous">True</property>
-                    <child>
-                      <object class="GtkButtonBox">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="spacing">5</property>
-                        <property name="layout_style">spread</property>
-                        <child>
-                          <object class="GtkToggleButton">
-                            <property name="label" translatable="yes">Active</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton">
-                            <property name="label" translatable="yes">Edit</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton">
-                            <property name="label" translatable="yes">Delete</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">2</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButtonBox">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="spacing">5</property>
-                        <property name="layout_style">spread</property>
-                        <child>
-                          <object class="GtkButton">
-                            <property name="label" translatable="yes">Add..</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Added</property>
-                        <property name="xalign">0</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Possible</property>
-                        <property name="xalign">0</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkScrolledWindow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="shadow_type">in</property>
-                        <child>
-                          <object class="GtkTreeView">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="vexpand">True</property>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection"/>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkScrolledWindow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="vexpand">True</property>
-                        <property name="shadow_type">in</property>
-                        <child>
-                          <object class="GtkTreeView">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection"/>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="position">7</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Services</property>
-              </object>
-              <packing>
-                <property name="position">7</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -1262,7 +1045,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                 </child>
               </object>
               <packing>
-                <property name="position">8</property>
+                <property name="position">7</property>
               </packing>
             </child>
             <child type="tab">
@@ -1272,7 +1055,7 @@ Use Save/Load button to save/load certificate to/from storage.</property>
                 <property name="label" translatable="yes">Custom</property>
               </object>
               <packing>
-                <property name="position">8</property>
+                <property name="position">7</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -1289,16 +1072,24 @@ Use Save/Load button to save/load certificate to/from storage.</property>
       <placeholder/>
     </child>
   </object>
-  <object class="GtkSizeGroup">
+  <object class="GtkSizeGroup" id="nets_apps_buttons">
     <widgets>
       <widget name="button_refresh_network_presets"/>
       <widget name="button_enable_network_preset"/>
       <widget name="button_disable_network_preset"/>
       <widget name="button_edit_network_preset"/>
       <widget name="button_remove_network_preset"/>
-      <widget name="button1"/>
+      <widget name="button_status_network_preset"/>
       <widget name="button_refresh_network_modules"/>
-      <widget name="button_create_new_preset"/>
+      <widget name="button_create_network_preset"/>
+      <widget name="button_refresh_application_presets"/>
+      <widget name="button_enable_application_preset"/>
+      <widget name="button_disable_application_preset"/>
+      <widget name="button_edit_application_preset"/>
+      <widget name="button_remove_application_preset"/>
+      <widget name="button_status_application_preset"/>
+      <widget name="button_refresh_application_modules"/>
+      <widget name="button_create_application_preset"/>
     </widgets>
   </object>
 </interface>

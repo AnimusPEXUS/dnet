@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -18,17 +19,30 @@ func (OwnData) TableName() string {
 }
 */
 
-type NetworkPreset struct {
+type ApplicationPreset struct {
+	Module    string `gorm:"primary_key"`
+	Enabled   bool
+	LastReKey time.Time
+	Key       [200]byte
+}
+
+type NetworkPresetRemoved struct {
 	Name    string `gorm:"primary_key"`
 	Module  string
 	Enabled bool
 	Config  string
 }
 
+type AppDB struct {
+	
+}
+
 type DB struct {
 	filename string
 	password string
 	db       *gorm.DB
+	app_db map[string]*gorm.DB
+	
 }
 
 func NewDB(filename, password string) (*DB, error) {
@@ -130,16 +144,26 @@ func (self *DB) SetNetPreset(
 	config string,
 ) error {
 
-	var pst NetworkPreset
+	var pst []NetworkPreset
 
-	if err := self.db.First(
+	if err := self.db.Find(
 		&pst,
 		&NetworkPreset{Name: name},
-	).Error; err != nil {
-		pst.Module = module
-		pst.Enabled = enabled
-		pst.Config = config
-		self.db.Save(&pst)
+	).Error; err == nil && len(pst) != 0 {
+
+		if len(pst) > 1 {
+			for _, i := range pst {
+				self.db.Delete(i)
+			}
+		}
+
+		t := pst[0]
+
+		t.Module = module
+		t.Enabled = enabled
+		t.Config = config
+		self.db.Save(&t)
+
 	} else {
 		self.db.Create(
 			&NetworkPreset{
