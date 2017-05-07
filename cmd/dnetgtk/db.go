@@ -13,46 +13,44 @@ type OwnData struct {
 	Value     string
 }
 
-/*
+type ApplicationStatus struct {
+	Name        string `gorm:"primary_key"`
+	Builtin     bool
+	Checksum    string
+	Enabled     bool
+	LastDBReKey *time.Time
+	DBKey       string
+}
+
 func (OwnData) TableName() string {
-	return "own_data"
-}
-*/
-
-type ApplicationPreset struct {
-	Module    string `gorm:"primary_key"`
-	Enabled   bool
-	LastReKey time.Time
-	Key       [200]byte
+	return "settings"
 }
 
-type NetworkPresetRemoved struct {
-	Name    string `gorm:"primary_key"`
-	Module  string
-	Enabled bool
-	Config  string
+func (ApplicationStatus) TableName() string {
+	return "application_status"
 }
 
 type AppDB struct {
-	
+	Name string
+	DB   *gorm.DB
 }
 
 type DB struct {
-	filename string
-	password string
+	username string
+	key      string
 	db       *gorm.DB
-	app_db map[string]*gorm.DB
-	
+	app_db   []*AppDB
 }
 
-func NewDB(filename, password string) (*DB, error) {
+func NewDB(
+	username string,
+	key string,
+) (*DB, error) {
 	ret := new(DB)
-	ret.filename = filename
-	ret.password = password
+	ret.username = username
+	ret.key = key
 
-	//fmt.Println("db filename", filename)
-
-	db, err := gorm.Open("sqlite3", filename)
+	db, err := OpenMainStorage(username)
 	if err != nil {
 		return nil, err
 	}
@@ -60,18 +58,19 @@ func NewDB(filename, password string) (*DB, error) {
 	ret.db = db
 
 	/*
-		_, err = db.Exec("PRAGMA key = ?;", password)
+		err = db.Exec("VACUUM;").Error
 		if err != nil {
 			db.Close()
+			fmt.Println("vacuum error:", err.Error())
 			return nil, err
 		}
 	*/
 
-	err = db.Exec("VACUUM").Error
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+	/*
+		if err := db.Commit().Error; err != nil {
+			fmt.Println("Commit error:", err.Error())
+		}
+	*/
 
 	if !db.HasTable(&OwnData{}) {
 		if err := db.CreateTable(&OwnData{}).Error; err != nil {
@@ -79,146 +78,112 @@ func NewDB(filename, password string) (*DB, error) {
 		}
 	}
 
-	if !db.HasTable(&NetworkPreset{}) {
-		if err := db.CreateTable(&NetworkPreset{}).Error; err != nil {
-			fmt.Println("error creating NetworkPreset table")
+	if !db.HasTable(&ApplicationStatus{}) {
+		if err := db.CreateTable(&ApplicationStatus{}).Error; err != nil {
+			fmt.Println("error creating ApplicationStatus table")
 		}
 	}
+
+	/*
+		if err := db.Commit().Error; err != nil {
+			fmt.Println("Commit error:", err.Error())
+		}
+	*/
 
 	return ret, nil
 
 }
 
-func (self *DB) SetOwnPrivKey(txt string) {
-	var own_key OwnData
-	if err := self.db.First(
-		&own_key,
-		&OwnData{ValueName: "privkey"},
-	).Error; err != nil {
-		self.db.Create(&OwnData{ValueName: "privkey", Value: txt})
-	} else {
-		own_key.Value = txt
-		self.db.Save(&own_key)
-	}
-}
+func (self *DB) GetAppDB(name string) (*AppDB, error) {
 
-func (self *DB) GetOwnPrivKey() (string, error) {
-	var own_key OwnData
-	if err := self.db.First(
-		&own_key,
-		&OwnData{ValueName: "privkey"},
-	).Error; err != nil {
-		return "", err
-	}
-	return own_key.Value, nil
-}
-
-func (self *DB) SetOwnTLSCertificate(txt string) {
-	var t OwnData
-	if err := self.db.First(
-		&t,
-		&OwnData{ValueName: "tls_certificate"},
-	).Error; err != nil {
-		self.db.Create(&OwnData{ValueName: "tls_certificate", Value: txt})
-	} else {
-		t.Value = txt
-		self.db.Save(&t)
-	}
-}
-
-func (self *DB) GetOwnTLSCertificate() (string, error) {
-	var t OwnData
-	if err := self.db.First(
-		&t,
-		&OwnData{ValueName: "tls_certificate"},
-	).Error; err != nil {
-		return "", err
-	}
-	return t.Value, nil
-}
-
-func (self *DB) SetNetPreset(
-	name string,
-	module string,
-	enabled bool,
-	config string,
-) error {
-
-	var pst []NetworkPreset
-
-	if err := self.db.Find(
-		&pst,
-		&NetworkPreset{Name: name},
-	).Error; err == nil && len(pst) != 0 {
-
-		if len(pst) > 1 {
-			for _, i := range pst {
-				self.db.Delete(i)
-			}
+	for _, i := range self.app_db {
+		if i.Name == name {
+			return i, nil
 		}
-
-		t := pst[0]
-
-		t.Module = module
-		t.Enabled = enabled
-		t.Config = config
-		self.db.Save(&t)
-
-	} else {
-		self.db.Create(
-			&NetworkPreset{
-				Name:    name,
-				Module:  module,
-				Enabled: enabled,
-				Config:  config,
-			},
-		)
 	}
 
-	return nil
-}
-
-func (self *DB) GetNetPreset(name string) (
-	found bool,
-	module string,
-	enabled bool,
-	config string,
-) {
-
-	found = false
-	module = ""
-	enabled = false
-	config = ""
-
-	var pst NetworkPreset
-
-	if err := self.db.First(
-		&pst,
-		&NetworkPreset{Name: name},
-	).Error; err == nil {
-		found = true
-		module = pst.Module
-		enabled = pst.Enabled
-		config = pst.Config
+	db, err := OpenApplicationStorage(self.username, name)
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	ret := &AppDB{
+		Name: name,
+		DB:   db,
+	}
+
+	self.app_db = append(
+		self.app_db,
+		ret,
+	)
+
+	return ret, nil
 }
 
-func (self *DB) DelNetPreset(name string) {
-	self.db.Delete(&NetworkPreset{Name: name})
-}
-
-func (self *DB) LstNetPresets() []string {
+func (self *DB) ListApplicationStatusNames() []string {
 	ret := make([]string, 0)
 
-	var pst []NetworkPreset
+	var aps []ApplicationStatus
 
-	if err := self.db.Find(&pst).Error; err == nil {
-		for _, i := range pst {
+	if err := self.db.Find(&aps, &ApplicationStatus{}).Error; err == nil {
+		for _, i := range aps {
 			ret = append(ret, i.Name)
 		}
 	}
 
 	return ret
+}
+
+/*
+	Use this not only for getting info on name, but also for creating new
+	Info for name
+*/
+func (self *DB) GetApplicationStatus(name string) (*ApplicationStatus, error) {
+
+	var ap ApplicationStatus
+
+	if err := self.db.First(
+		&ap,
+		&ApplicationStatus{Name: name},
+	).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ap.Name = name
+			ap.Checksum = ""
+			ap.Enabled = false
+			ap.LastDBReKey = new(time.Time)
+			ap.DBKey = ""
+			if self.db.NewRecord(ap) {
+				self.db.Create(ap)
+			}
+			return &ap, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return &ap, nil
+	}
+}
+
+func (self *DB) DelApplicationStatus(name string) {
+	var as []ApplicationStatus
+
+	if self.db.Find(&as, &ApplicationStatus{Name: name}).Error == nil {
+
+		for _, i := range as {
+			self.db.Delete(i)
+		}
+	}
+}
+
+func (self *DB) SetApplicationStatus(value *ApplicationStatus) error {
+	var err error
+
+	if self.db.NewRecord(value) {
+
+		err = self.db.Create(value).Error
+	} else {
+
+		err = self.db.Save(value).Error
+	}
+	return err
 }

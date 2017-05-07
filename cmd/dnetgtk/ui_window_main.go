@@ -11,10 +11,6 @@ import (
 type UIWindowMain struct {
 	controller *Controller
 
-	*UIWindowMainTabKeys
-	*UIWindowMainTabTLSCertificate
-
-	//*UIWindowMainTabNetworks
 	*UIWindowMainTabApplications
 
 	win *gtk.Window
@@ -31,10 +27,6 @@ type UIWindowMain struct {
 	button_home_sep *gtk.Separator
 	button_home     *gtk.Button
 	mi_storage      *gtk.MenuItem
-	mi_keys         *gtk.MenuItem
-	mi_networks     *gtk.MenuItem
-	mi_applications *gtk.MenuItem
-	mi_tls_cert     *gtk.MenuItem
 	mi_about        *gtk.MenuItem
 
 	notebook_main *gtk.Notebook
@@ -62,28 +54,6 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 	}
 
 	{
-		if res, err := UIWindowMainTabKeysNew(
-			builder,
-			ret,
-		); err == nil {
-			ret.UIWindowMainTabKeys = res
-		} else {
-			panic(err.Error())
-		}
-	}
-
-	{
-		if res, err := UIWindowMainTabTLSCertificateNew(
-			builder,
-			ret,
-		); err == nil {
-			ret.UIWindowMainTabTLSCertificate = res
-		} else {
-			panic(err.Error())
-		}
-	}
-
-	{
 		if res, err := UIWindowMainTabApplicationsNew(
 			builder,
 			ret,
@@ -105,122 +75,6 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		t1, _ := t0.(*gtk.ToggleButton)
 		ret.button_online = t1
 	}
-
-	{
-		t0, _ := builder.GetObject("button_home")
-		t1, _ := t0.(*gtk.Button)
-		ret.button_home = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("button_home_sep")
-		t1, _ := t0.(*gtk.Separator)
-		ret.button_home_sep = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("notebook_main")
-		t1, _ := t0.(*gtk.Notebook)
-		ret.notebook_main = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_about")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_about = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_storage")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_storage = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_keys")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_keys = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_tls_cert")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_tls_cert = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_networks")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_networks = t1
-	}
-
-	{
-		t0, _ := builder.GetObject("mi_applications")
-		t1, _ := t0.(*gtk.MenuItem)
-		ret.mi_applications = t1
-	}
-
-	ret.notebook_main.Connect(
-		"switch-page",
-		func(notebook *gtk.Notebook,
-			page *gtk.Widget,
-			page_num uint,
-		) {
-			show := page_num != 7
-
-			if show {
-				ret.notebook_main.SetShowTabs(true)
-				ret.button_home.Show()
-				ret.button_home_sep.Show()
-			} else {
-				ret.notebook_main.SetShowTabs(false)
-				ret.button_home.Hide()
-				ret.button_home_sep.Hide()
-			}
-		},
-	)
-
-	ret.mi_about.Connect(
-		"activate",
-		func() {
-			ret.notebook_main.SetCurrentPage(0)
-		},
-	)
-
-	ret.mi_storage.Connect(
-		"activate",
-		func() {
-			ret.notebook_main.SetCurrentPage(1)
-		},
-	)
-
-	ret.mi_keys.Connect(
-		"activate",
-		func() {
-			ret.notebook_main.SetCurrentPage(2)
-		},
-	)
-
-	ret.mi_tls_cert.Connect(
-		"activate",
-		func() {
-			ret.notebook_main.SetCurrentPage(3)
-		},
-	)
-
-	ret.mi_applications.Connect(
-		"activate",
-		func() {
-			ret.notebook_main.SetCurrentPage(6)
-		},
-	)
-
-	ret.button_home.Connect(
-		"clicked",
-		func() {
-			ret.notebook_main.SetCurrentPage(7)
-		},
-	)
 
 	ret.button_online.Connect(
 		"toggled",

@@ -4,52 +4,54 @@ import (
 	"errors"
 	"fmt"
 
-	"bitbucket.org/AnimusPEXUS/dnet"
-	"bitbucket.org/AnimusPEXUS/dnet/application_modules/pm"
-	"bitbucket.org/AnimusPEXUS/dnet/network_modules/tcpip"
+	//"bitbucket.org/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_dummy"
+	"bitbucket.org/AnimusPEXUS/dnet/common_types"
 )
 
-const CONFIG_DIR = "~/.config/DNet"
+//const CONFIG_DIR = "~/.config/DNet"
 
 type Controller struct {
 	//db_file  string
 	//password string
 	//opened   bool
 
-	DB *DB
+	DB          *DB
+	ModSearcher *ModuleSercher
 
-	network_presets []*ControllerNetworkPresetAndInstance
-
-	dnet_controller *dnet.Controller
+	application_presets []*ControllerApplicationWrap
 
 	window_main *UIWindowMain
+
+	builtin_app_modules []common_types.ApplicationModule
 }
 
-func NewController(db_file string, password string) (*Controller, error) {
+func NewController(username string, key string) (*Controller, error) {
 
 	ret := new(Controller)
 
 	{
-		t, err := NewDB(db_file, password)
+		t, err := NewDB(username, key)
 		if err != nil {
 			return nil, err
 		}
 		ret.DB = t
 	}
 
-	ret.network_presets = make([]*ControllerNetworkPresetAndInstance, 0)
-
-	if cntrlr, err := dnet.NewController(); err != nil {
-		return nil, err
-	} else {
-		ret.dnet_controller = cntrlr
+	ret.builtin_app_modules = []common_types.ApplicationModule{
+		//&builtin_dummy.Module{},
 	}
 
-	// network modules
-	ret.dnet_controller.AppendNetworkModule(tcpip.NewModule())
+	ret.ModSearcher = ModuleSercherNew(ret.builtin_app_modules)
 
-	// application modules
-	ret.dnet_controller.AppendApplicationModule(pm.NewModule())
+	ret.application_presets = make([]*ControllerApplicationWrap, 0)
+
+	/*
+		if cntrlr, err := dnet.NewController(); err != nil {
+			return nil, err
+		} else {
+			ret.dnet_controller = cntrlr
+		}
+	*/
 
 	// Next line requires modules to be present already
 	ret.RestorePresetsFromStorage()
@@ -59,207 +61,174 @@ func NewController(db_file string, password string) (*Controller, error) {
 	return ret, nil
 }
 
-/*
-func (self *Controller) IsOpened() bool {
-	return self.opened
-}
-*/
-
-func (self *Controller) DNet() *dnet.Controller {
-	return self.dnet_controller
-}
-
 func (self *Controller) ShowMainWindow() {
 	self.window_main.Show()
 	return
 }
 
-/*
-func (self *Controller) NetworkPresetsCopy() []*ControllerNetworkPresetExt {
-	ret := make([]*ControllerNetworkPresetExt, len(self.network_presets))
-	for _, i := range self.network_presets {
-		ret = append(ret, ControllerNetworkPresetExtNew(&i.ControllerNetworkPreset))
-	}
-	return ret
-}
-*/
-
-func (self *Controller) NetworkPresetList() []string {
-	ret := make([]string, 0)
-	for _, i := range self.network_presets {
-		ret = append(ret, i.Name())
-	}
-	return ret
-}
-
-func (self *Controller) HasNetworkPresetName(name string) bool {
-	for _, i := range self.network_presets {
-		if i.Name() == name {
+func (self *Controller) isModuleNameBuiltIn(name string) bool {
+	for _, i := range self.builtin_app_modules {
+		if i.Name().Value() == name {
 			return true
 		}
 	}
 	return false
 }
 
-func (self *Controller) GasNetworkPresetByName(
-	name string,
-) *ControllerNetworkPresetAndInstance {
-	for _, i := range self.network_presets {
-		if i.Name() == name {
-			return i
-		}
-	}
-	return nil
-}
-
-func (self *Controller) DeleteNetworkPreset(name string) error {
-	for ii, i := range self.network_presets {
-		if i.Name() == name {
-			if !i.NetworkInstance.Status().Stopped() {
-				return errors.New(
-					"Preset instance have to be stopped, before deleting it's preset",
-				)
+/*
+	Controller should be considered selfsaficient functionality and if
+	passed `builtin' == false (with necessary checksum ofcourse), then
+	Controller shoult perform search manually and retrieve it's name right from
+	the module.
+*/
+func (self *Controller) EnableModule(name string, value bool) error {
+	for _, i := range self.application_presets {
+		if i.Name.Value() == name {
+			stat, err := self.DB.GetApplicationStatus(name)
+			if err != nil {
+				return errors.New("can't get ApplicationStatus for named module")
 			}
-			self.network_presets = append(
-				// self.network_presets[0:0],
-				self.network_presets[0:ii],
-				self.network_presets[ii+1:len(self.network_presets)]...,
-			)
-			break
+			i.DBStatus.Enabled = value
+			stat.Enabled = value
+			self.DB.SetApplicationStatus(stat)
+			if value {
+				i.Start()
+			} else {
+				i.Stop()
+			}
+			return nil
 		}
 	}
-	self.DB.DelNetPreset(name)
-	return nil
+	return errors.New("so preset with this name")
 }
 
-func (self *Controller) addNetworkPreset(
-	name string,
-	module string,
-	enabled bool,
-	config string,
-	avoid_db_save bool,
+func (self *Controller) AcceptModule(
+	builtin bool,
+	name *common_types.ModuleName,
+	checksum *common_types.ModuleChecksum,
 ) error {
 
-	if self.HasNetworkPresetName(name) {
-		return errors.New(
-			"already has preset with same name." +
-				" choose new name or edit existing.",
-		)
+	appstat, err := self.acceptModuleNoSaveToDB(builtin, name, checksum)
+	if err != nil {
+		return err
 	}
 
-	cnp := ControllerNetworkPresetNew(
-		name,
-		module,
-		enabled,
-		config,
+	err = self.DB.SetApplicationStatus(appstat)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// this func is for internal uses
+func (self *Controller) acceptModuleNoSaveToDB(
+	builtin bool,
+	name *common_types.ModuleName,
+	checksum *common_types.ModuleChecksum,
+) (
+	*ApplicationStatus,
+	error,
+) {
+
+	if mbdn :=
+		self.isModuleNameBuiltIn(name.Value()); (builtin && !mbdn) ||
+		(!builtin && mbdn) {
+		return nil, errors.New("trying to accept external module as builtin")
+	}
+
+	for _, i := range self.application_presets {
+		if i.Name.Value() == name.Value() {
+			return nil, errors.New("already have preset for module with this name")
+		}
+	}
+
+	wrap, err := ControllerApplicationWrapNew(self, builtin, name, checksum)
+	if err != nil {
+		panic("module wrapping error: " + err.Error())
+	}
+
+	if wrap.DBStatus.Enabled {
+		wrap.Start()
+	} else {
+		wrap.Stop()
+	}
+
+	self.application_presets = append(
+		self.application_presets,
+		wrap,
 	)
 
-	if a, err := ControllerNetworkPresetAndInstanceNew(
-		cnp,
-		self.dnet_controller,
-	); err != nil {
-		panic("can't ControllerNetworkPresetAndInstanceNew(): " + err.Error())
-	} else {
-		self.network_presets = append(self.network_presets, a)
-	}
+	return wrap.DBStatus, nil
 
-	if avoid_db_save == false {
-		self.DB.SetNetPreset(
-			name,
-			module,
-			enabled,
-			config,
-		)
-	}
-
-	return nil
 }
 
-func (self *Controller) AddNetworkPreset(
-	name string,
-	module string,
-	enabled bool,
-	config string,
-) error {
-	return self.addNetworkPreset(name, module, enabled, config, false)
-}
-
-func (self *Controller) ChangeNetworkPresetEnabled(
-	name string,
-	value bool,
-) error {
-	ret := error(nil)
-	for _, i := range self.network_presets {
-		if i.Name() == name {
-
-			if value {
-				i.NetworkInstance.Start()
-			} else {
-				i.NetworkInstance.Stop()
-			}
-
-			_, module, _, config := self.DB.GetNetPreset(name)
-
-			self.DB.SetNetPreset(
-				name,
-				module,
-				value,
-				config,
-			)
-
-			break
-
-		}
-	}
-
-	return ret
-}
-
-func (self *Controller) ChangeNetworkPresetConfig(
-	name string,
-	config string,
-) error {
-	ret := error(nil)
-	for _, i := range self.network_presets {
-		if i.Name() == name {
-			if !i.NetworkInstance.Status().Stopped() {
-				ret = errors.New("Can't change while not stopped")
-			} else {
-				i.NetworkInstance.SetConfig(config)
-
-				_, module, enabled, _ := self.DB.GetNetPreset(name)
-
-				self.DB.SetNetPreset(
-					name,
-					module,
-					enabled,
-					config,
-				)
-
-				ret = nil
-			}
-			break
-		}
-	}
-
-	return ret
+func (self *Controller) RejectModule(name string) {
+	self.DB.DelApplicationStatus(name)
 }
 
 func (self *Controller) RestorePresetsFromStorage() {
-	lst := self.DB.LstNetPresets()
-	for _, name := range lst {
-		found, module, enabled, config := self.DB.GetNetPreset(name)
-		if !found {
-			fmt.Println("error: storage does not have such network preset")
-		} else {
-			self.addNetworkPreset(
-				name,
-				module,
-				enabled,
-				config,
-				true,
+
+	self.application_presets = append(self.application_presets[0:0])
+
+	names := self.DB.ListApplicationStatusNames()
+
+	for _, i := range names {
+		if dbstat, err := self.DB.GetApplicationStatus(i); err == nil {
+
+			name_obj, err := common_types.ModuleNameNew(dbstat.Name)
+			if err != nil {
+				fmt.Println(
+					"rejecting module " + dbstat.Name + " because name invalid",
+				)
+				self.RejectModule(i)
+				continue
+			}
+
+			checksum_obj := (*common_types.ModuleChecksum)(nil)
+			if !dbstat.Builtin {
+				checksum_obj_, err :=
+					common_types.ModuleChecksumNewFromString(dbstat.Checksum)
+				if err != nil {
+					fmt.Println(
+						"rejecting module " + dbstat.Name + " because checksum invalid",
+					)
+					self.RejectModule(i)
+					continue
+				}
+				checksum_obj = checksum_obj_
+			}
+
+			// TODO: error should be tracked
+			self.acceptModuleNoSaveToDB(
+				dbstat.Builtin,
+				name_obj,
+				checksum_obj,
 			)
+
+		} else {
+			self.RejectModule(i)
 		}
 	}
-
 }
+
+/*
+Key/ReKey code for when sqlcipher will be available for go
+
+		_, err = db.Exec("PRAGMA key = ?;", password)
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+
+			db.Exec("PRAGMA key = " + string(stat.DBKey))
+
+			if time.Now >= stat.LastDBReKey+time.Duration(24*7*4)*time.Hour {
+				buff := make([]byte, 255)
+				rand.Read(buff)
+				db.Exec("PRAGMA rekey = " + string(buff))
+				stat.DBKey = string(buff)
+				self.SetApplicationStatus(stat)
+			}
+
+*/

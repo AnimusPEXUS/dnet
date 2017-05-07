@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/user"
 	"path"
 
@@ -47,28 +48,44 @@ func GetApplicationStorageFilePath(
 }
 
 func OpenMainStorage(
-	user_name string,
+	username string,
 ) (*gorm.DB, error) {
-	filename := GetMainStorageFilePath(user_name)
+	filename := GetMainStorageFilePath(username)
+
+	{
+		d := path.Dir(filename)
+		err := os.MkdirAll(d, 0700)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	db, err := gorm.Open("sqlite3", filename)
 	if err != nil {
 		return nil, err
 	}
 
-	return ret, nil
+	return db, nil
 }
 
 func OpenApplicationStorage(
 	user_name string,
 	application_name string,
 ) (*gorm.DB, error) {
-	filename := GetApplicationStorageFilePath(user_name)
+	filename := GetApplicationStorageFilePath(user_name, application_name)
+
+	{
+		d := path.Dir(filename)
+		err := os.MkdirAll(d, 0700)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	db, err := gorm.Open("sqlite3", filename)
 	if err != nil {
 		return nil, err
 	}
 
-	return ret, nil
+	return db, nil
 }

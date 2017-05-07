@@ -2,61 +2,62 @@ package common_types
 
 import (
 	"net"
-
-	"github.com/jinzhu/gorm"
+	"regexp"
 )
 
+func IsApplicationNameCorrect(text string) bool {
+	if ok, err :=
+		regexp.Match(`^[a-z][a-z0-9_\-]*$`, []byte(text)); err != nil {
+		panic(err.Error)
+	} else {
+		return ok
+	}
+}
+
 type ApplicationModule interface {
-	// name should be in lower case letters without spaces.
-	// re is "^[a-z][a-z0-9_\-*]$". upper case used by special values
-	Name() string
+	Name() *ModuleName
 
 	Title() string
 	Description() string
 
 	DependsOn() []string // module names which required to be enabled
 
-	// watever instance can be contacted through AcceptConn() call
-	// (and accessed by other DNet nodes)
-	ListensConnections() bool
-
-	// list of applications on same DNet instance, which allowed to get access
-	// to instance of this Application module
-	AllowLocalInstanceAccessTo() []string
-
-	// NOTE: instance may be contacted through the network from any service
-	//       on any DNet node by AcceptConn, and this is not the same access
-	//       level, which is grunted by AllowLocalInstanceAccessTo() list.
+	// If instance can be called to show it's window
+	HasWindow() bool
 
 	//////////////////
 
 	// Single ApplicationInstance should serve all and any requests to it.
 	// DNet does not creates separate instances to each request.
 
-	// DNet creates (if isn't already exists) database connection for starting
-	// application instance and passes db connection to it.
+	// DNet automatically creates and passes DB connection along with
+	// ApplicationCommunicator structure
 
-	// db should be considered sqlcipher or sqlite3 GORM instance.
-	// DNet uses Key and ReKey commands by it's own means and only DNet
-	// should know and only DNet may change DB keyphrase. Application shold work
-	// with db as with regular GORM sqlite3 connection, except Application should
-	// not perform closing of DB.
+	// Database connection should be considered sqlcipher (or sqlite3, while
+	// developping) GORM instance.
+
+	// DNet uses  Key and ReKey sqlcipher's commands by it's own means and only 
+	// DNet should know and only DNet may change DB keyphrase. Application shold 
+	// work with db as with regular GORM sqlite3 connection, except Application 
+	// should not perform closing of DB. otherwise DB misconsistencies may 
+	// happen, leading to database reinitialization or inconsistency (behavior 
+	// is not specified).
 
 	// DNet will automatically do ReKey command to DB over some time intervals.
 	// presumably 30 days.
-	Instance(db *gorm.DB) (ApplicationInstance, error)
+	Instance(com ApplicationCommunicator) (ApplicationModuleInstance, error)
 }
 
-type ApplicationInstance interface {
-	SetCoonectionRequestCB(func(credentials string) (net.Conn, error))
-
+type ApplicationModuleInstance interface {
 	Start()
 	Stop()
-	Status() *ApplicationInstanceStatus
+	Status() *WorkerStatus
 
-	AcceptConn(net.Conn) error
-}
-
-type ApplicationInstanceStatus struct {
-	WorkerStatus
+	AcceptConn(
+		local bool,
+		from_local_svc string, // this is meaningfull only if `local' is true
+		to_svc string,
+		who *Address,
+		conn net.Conn,
+	) error
 }

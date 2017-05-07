@@ -7,7 +7,7 @@ import (
 func main() {
 	gtk.Init(nil)
 
-	win := UIWindowLoginNew("agu.sqlite")
+	win := UIWindowLoginNew("agu")
 	win.Show()
 
 	gtk.Main()
