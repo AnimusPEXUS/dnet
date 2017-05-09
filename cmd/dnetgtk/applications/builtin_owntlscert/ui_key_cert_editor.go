@@ -1,4 +1,4 @@
-package main
+package builtin_keysandcerts
 
 import (
 	//"github.com/gotk3/gotk3/glib"

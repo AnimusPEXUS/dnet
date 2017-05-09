@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	//"bitbucket.org/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_dummy"
-	"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_dummy"
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 //const CONFIG_DIR = "~/.config/DNet"

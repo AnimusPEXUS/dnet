@@ -1,15 +1,10 @@
 
-GLADES=$(wildcard ui/*.glade)
-GOS=$(wildcard *.go)
-
-all: dnetgtk
-
-ui-bindata.go: $(GLADES)
-	-rm -v ui/*~
-	go-bindata -o ui-bindata.go ui
+# This Makefile is needed only to rebuild ui_bindata.go files.
+# Only developers of dnetgtk may need this.
+# Users should be able simply go get dnetgtk without any additional
+# movements
 
 
-dnetgtk: $(GOS) ui-bindata.go Makefile
-	go build -v
-
+all:
+	python3 ./build_ui.py
 

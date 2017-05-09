@@ -1,4 +1,4 @@
-package main
+package key_cert_editor
 
 import (
 	//"github.com/gotk3/gotk3/glib"

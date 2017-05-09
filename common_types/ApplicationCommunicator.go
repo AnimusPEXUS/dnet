@@ -28,4 +28,10 @@ type ApplicationCommunicator interface {
 		*net.Conn,
 		error,
 	)
+
+	GetOtherApplicationInstance(name string) (
+		ApplicationModuleInstance,
+		ApplicationModule,
+		error,
+	)
 }

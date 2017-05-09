@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net"
 
-	"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type ControllerApplicationModuleWrapper struct {

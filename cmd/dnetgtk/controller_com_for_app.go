@@ -5,11 +5,13 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type ControllerCommunicatorForApp struct {
-	db *gorm.DB // DB access
+	controller *Controller
+	wrap       *ControllerApplicationWrap
+	db         *gorm.DB // DB access
 }
 
 func (self *ControllerCommunicatorForApp) GetDBConnection() *gorm.DB {
@@ -27,4 +29,19 @@ func (self *ControllerCommunicatorForApp) Connect(
 ) {
 
 	return nil, nil
+}
+
+func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
+	name string,
+) (
+	ApplicationModuleInstance,
+	ApplicationModule,
+	error,
+) {
+	for _, i := range self.controller.application_presets {
+		if i.Name.Value() == name {
+			return i.Instance.RequestInstance(self.wrap.Name.Value())
+		}
+	}
+	return nil, nil, errors.New("module not found")
 }

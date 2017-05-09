@@ -7,7 +7,7 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
-	"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type UIWindowMainTabApplications struct {

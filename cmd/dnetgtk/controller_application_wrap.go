@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 
-	"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 // Wrap is for DNet's safety. So, for instance, App could not change .Name()
@@ -70,7 +70,9 @@ func ControllerApplicationWrapNew(
 	}
 
 	cc := &ControllerCommunicatorForApp{
-		db: db.DB,
+		controller: controller,
+		wrap:       ret,
+		db:         db.DB,
 	}
 
 	inst, err := mod.Instance(cc)

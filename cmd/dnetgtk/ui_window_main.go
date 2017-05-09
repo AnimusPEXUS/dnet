@@ -1,11 +1,11 @@
-package main
+package builtin_keypair
 
 import (
 	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"
-	//"bitbucket.org/AnimusPEXUS/dnet"
-	//"bitbucket.org/AnimusPEXUS/dnet/common_types"
+	//"github.com/AnimusPEXUS/dnet"
+	//"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type UIWindowMain struct {

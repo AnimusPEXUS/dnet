@@ -283,6 +283,19 @@
                             <property name="position">5</property>
                           </packing>
                         </child>
+                        <child>
+                          <object class="GtkButton" id="button_open_window_application_preset">
+                            <property name="label" translatable="yes">Open..</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">6</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -450,6 +463,7 @@
       <widget name="button_rekey_application_preset"/>
       <widget name="button_refresh_application_modules"/>
       <widget name="button_accept_application"/>
+      <widget name="button_open_window_application_preset"/>
     </widgets>
   </object>
 </interface>

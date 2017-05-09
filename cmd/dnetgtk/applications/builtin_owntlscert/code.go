@@ -1,4 +1,4 @@
-package builtin_keypair
+package builtin_keysandcerts
 
 func (self *DB) SetOwnPrivKey(txt string) {
 	var own_key OwnData

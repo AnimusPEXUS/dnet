@@ -36,11 +36,11 @@ type ApplicationModule interface {
 	// Database connection should be considered sqlcipher (or sqlite3, while
 	// developping) GORM instance.
 
-	// DNet uses  Key and ReKey sqlcipher's commands by it's own means and only 
-	// DNet should know and only DNet may change DB keyphrase. Application shold 
-	// work with db as with regular GORM sqlite3 connection, except Application 
-	// should not perform closing of DB. otherwise DB misconsistencies may 
-	// happen, leading to database reinitialization or inconsistency (behavior 
+	// DNet uses  Key and ReKey sqlcipher's commands by it's own means and only
+	// DNet should know and only DNet may change DB keyphrase. Application shold
+	// work with db as with regular GORM sqlite3 connection, except Application
+	// should not perform closing of DB. otherwise DB misconsistencies may
+	// happen, leading to database reinitialization or inconsistency (behavior
 	// is not specified).
 
 	// DNet will automatically do ReKey command to DB over some time intervals.
@@ -55,9 +55,27 @@ type ApplicationModuleInstance interface {
 
 	AcceptConn(
 		local bool,
-		from_local_svc string, // this is meaningfull only if `local' is true
+		calling_svc_name string, // this is meaningfull only if `local' is true
 		to_svc string,
 		who *Address,
 		conn net.Conn,
 	) error
+
+	// this method may be called only by local services.
+	// this method is for direct access for trusted modules (services), as this
+	// is mutch faster than socket connection.
+	// ApplicationModuleInstance, using calling_svc_name, should decide, to 
+	// return valid values, or to return nils and error.
+
+	RequestInstance(calling_svc_name string) (
+		ApplicationModuleInstance,
+		ApplicationModule,
+		error,
+	)
+
+	// should show module's window. If module has no window and it's HasWindow()
+	// result's to false, then ShowWindow() should return non-nil error stating
+	// so. anyway, DNet Software should not allow user to call ShowWindow() if
+	// HasWindow() results to false
+	ShowWindow() error
 }

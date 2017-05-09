@@ -1,4 +1,4 @@
-package builtin_tlscert
+package builtin_keysandcerts
 
 func (self *DB) SetOwnTLSCertificate(txt string) {
 	var t OwnData
