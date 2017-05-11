@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	// "fmt"
 	"net"
 
 	"github.com/jinzhu/gorm"
@@ -34,14 +36,26 @@ func (self *ControllerCommunicatorForApp) Connect(
 func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 	name string,
 ) (
-	ApplicationModuleInstance,
-	ApplicationModule,
+	common_types.ApplicationModuleInstance,
+	common_types.ApplicationModule,
 	error,
 ) {
+	caller_name := self.wrap.Name.Value()
+
+	/*
+		fmt.Printf(
+			"application `%s' tries to get `%s''s instance",
+			caller_name,
+			name,
+		)
+	*/
+
 	for _, i := range self.controller.application_presets {
 		if i.Name.Value() == name {
-			return i.Instance.RequestInstance(self.wrap.Name.Value())
+			//	fmt.Println("  success")
+			return i.Instance.RequestInstance(caller_name)
 		}
 	}
+	//fmt.Println("  failure")
 	return nil, nil, errors.New("module not found")
 }

@@ -1,20 +1,25 @@
 package builtin_ownkeypair
 
 import (
-	"net"
+	"fmt"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type Module struct {
+	name *common_types.ModuleName
 }
 
 func (self *Module) Name() *common_types.ModuleName {
-	ret, err := common_types.ModuleNameNew("builtin_ownkeypair")
-	if err != nil {
-		panic("this shold not been happen")
+	if self.name == nil {
+		t, err := common_types.ModuleNameNew("builtin_ownkeypair")
+		if err != nil {
+			panic("this shold not been happen")
+		}
+		self.name = t
 	}
-	return ret
+
+	return self.name
 }
 
 func (self *Module) Title() string {
@@ -38,46 +43,15 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	error,
 ) {
 	ret := &Instance{}
-	return ret, nil
-}
+	ret.com = com
+	ret.db = &DB{db: com.GetDBConnection()}
+	ret.mod = self
 
-type Instance struct {
-}
-
-func (self *Instance) Start() {
-}
-
-func (self *Instance) Stop() {
-}
-
-func (self *Instance) Status() *common_types.WorkerStatus {
-	return &WorkerStatus{}
-}
-
-func (self *Instance) AcceptConn(
-	local bool,
-	local_svc_name string,
-	to_svc string,
-	who *common_types.Address,
-	conn net.Conn,
-) error {
-	if !local {
-		return errors.New("this module does not accepts external connections")
+	if !ret.db.db.HasTable(&OwnData{}) {
+		if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
+			fmt.Println("builtin_ownkeypair:", "Can't create table:", err.Error())
+		}
 	}
 
-	return nil 
-}
-
-func (self *Instance) RequestInstance(local_svc_name string) (
-	common_types.ApplicationModuleInstance,
-	common_types.ApplicationModule,
-	error,
-) {
-}
-
-func (self *Instance) ShowWindow() error {
-}
-
-func test(a common_types.ApplicationModule) {
-	test(&Module{})
+	return ret, nil
 }

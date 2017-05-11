@@ -1,4 +1,4 @@
-package main
+package progress_window
 
 import (
 	"github.com/gotk3/gotk3/gtk"

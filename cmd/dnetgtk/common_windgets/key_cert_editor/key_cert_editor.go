@@ -14,6 +14,8 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/text_viewer"
 )
 
 type UIKeyCertEditor struct {
@@ -640,7 +642,7 @@ func (self *UIKeyCertEditor) onCertToolKeyInfo() {
 
 	glib.IdleAdd(
 		func() {
-			vww := UITextViewerNew(
+			vww := text_viewer.UITextViewerNew(
 				"certtool --key-info Result",
 				output,
 				self.win,
@@ -765,7 +767,7 @@ func (self *UIKeyCertEditor) onCertToolPubKeyInfo() {
 			if self.mode == "private" {
 				title += " (extracted from private key)"
 			}
-			vww := UITextViewerNew(
+			vww := text_viewer.UITextViewerNew(
 				title,
 				output,
 				self.win,
@@ -812,7 +814,7 @@ func (self *UIKeyCertEditor) onCertToolCertificateInfo() {
 
 	glib.IdleAdd(
 		func() {
-			vww := UITextViewerNew(
+			vww := text_viewer.UITextViewerNew(
 				"certtool --certificate-info Result",
 				output,
 				self.win,

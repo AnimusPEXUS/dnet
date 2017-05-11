@@ -7,4 +7,4 @@
 
 all:
 	python3 ./build_ui.py
-
+	go build -v

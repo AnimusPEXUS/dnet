@@ -1,4 +1,4 @@
-package builtin_keysandcerts
+package builtin_owntlscert
 
 import (
 	"crypto/rand"
@@ -9,28 +9,51 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+
 	// "github.com/AnimusPEXUS/dnet"
 	// "github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
+
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/key_cert_editor"
 )
 
-type UIWindowMainTabTLSCertificate struct {
-	main_window *UIWindowMain
+type UIWindow struct {
+	inst *Instance
 
+	window                          *gtk.Window
 	button_generate_own_certificate *gtk.Button
 	button_save_own_certificate     *gtk.Button
 	button_load_own_certificate     *gtk.Button
 	box_certificate                 *gtk.Box
-	cert_editor_own                 *UIKeyCertEditor
+	cert_editor_own                 *key_cert_editor.UIKeyCertEditor
 }
 
-func UIWindowMainTabTLSCertificateNew(
-	builder *gtk.Builder,
-	main_window *UIWindowMain,
-) (*UIWindowMainTabTLSCertificate, error) {
+func UIWindowNew(inst *Instance) (*UIWindow, error) {
 
-	ret := new(UIWindowMainTabTLSCertificate)
+	ret := new(UIWindow)
 
-	ret.main_window = main_window
+	ret.inst = inst
+
+	builder, err := gtk.BuilderNew()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	data, err := uiMainGladeBytes()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = builder.AddFromString(string(data))
+	if err != nil {
+		panic(err.Error())
+	}
+
+	{
+		t0, _ := builder.GetObject("window")
+		t1, _ := t0.(*gtk.Window)
+		ret.window = t1
+	}
 
 	{
 		t0, _ := builder.GetObject("button_generate_own_certificate")
@@ -56,6 +79,21 @@ func UIWindowMainTabTLSCertificateNew(
 		ret.box_certificate = t1
 	}
 
+	{
+		ret.cert_editor_own =
+			key_cert_editor.UIKeyCertEditorNew(ret.window, "certificate")
+		r := ret.cert_editor_own.GetRoot()
+		ret.box_certificate.Add(r)
+		r.SetHExpand(true)
+	}
+
+	ret.window.Connect(
+		"destroy",
+		func() {
+			ret.inst.win = nil
+		},
+	)
+
 	ret.button_generate_own_certificate.Connect(
 		"clicked",
 		func() {
@@ -64,15 +102,42 @@ func UIWindowMainTabTLSCertificateNew(
 				var priv_key *rsa.PrivateKey
 				var pub_key *rsa.PublicKey
 
+				key_mod := (*builtin_ownkeypair.Instance)(nil)
+
+				inst, _, err :=
+					ret.inst.com.GetOtherApplicationInstance("builtin_ownkeypair")
+
+				key_mod, ok := inst.(*builtin_ownkeypair.Instance)
+				if !ok {
+					panic("this should not been happened")
+				}
+
+				if err != nil {
+					glib.IdleAdd(
+						func() {
+							d := gtk.MessageDialogNew(
+								ret.window,
+								0,
+								gtk.MESSAGE_ERROR,
+								gtk.BUTTONS_OK,
+								"Coldn't access module `builtin_ownkeypair':"+err.Error(),
+							)
+							d.Run()
+							d.Destroy()
+						},
+					)
+					return
+				}
+
 				{
 					var err error
 
-					priv_pem, err := ret.main_window.controller.DB.GetOwnPrivKey()
+					priv_pem, err := key_mod.GetOwnPrivKey()
 					if err != nil {
 						glib.IdleAdd(
 							func() {
 								d := gtk.MessageDialogNew(
-									ret.main_window.win,
+									ret.window,
 									0,
 									gtk.MESSAGE_ERROR,
 									gtk.BUTTONS_OK,
@@ -90,7 +155,7 @@ func UIWindowMainTabTLSCertificateNew(
 						glib.IdleAdd(
 							func() {
 								d := gtk.MessageDialogNew(
-									ret.main_window.win,
+									ret.window,
 									0,
 									gtk.MESSAGE_ERROR,
 									gtk.BUTTONS_OK,
@@ -106,7 +171,7 @@ func UIWindowMainTabTLSCertificateNew(
 						glib.IdleAdd(
 							func() {
 								d := gtk.MessageDialogNew(
-									ret.main_window.win,
+									ret.window,
 									0,
 									gtk.MESSAGE_ERROR,
 									gtk.BUTTONS_OK,
@@ -123,7 +188,7 @@ func UIWindowMainTabTLSCertificateNew(
 						glib.IdleAdd(
 							func() {
 								d := gtk.MessageDialogNew(
-									ret.main_window.win,
+									ret.window,
 									0,
 									gtk.MESSAGE_ERROR,
 									gtk.BUTTONS_OK,
@@ -171,7 +236,7 @@ func UIWindowMainTabTLSCertificateNew(
 					glib.IdleAdd(
 						func() {
 							d := gtk.MessageDialogNew(
-								ret.main_window.win,
+								ret.window,
 								0,
 								gtk.MESSAGE_ERROR,
 								gtk.BUTTONS_OK,
@@ -204,7 +269,7 @@ func UIWindowMainTabTLSCertificateNew(
 				glib.IdleAdd(
 					func() {
 						d := gtk.MessageDialogNew(
-							ret.main_window.win,
+							ret.window,
 							0,
 							gtk.MESSAGE_ERROR,
 							gtk.BUTTONS_OK,
@@ -216,19 +281,19 @@ func UIWindowMainTabTLSCertificateNew(
 				)
 				return
 			}
-			ret.main_window.controller.DB.SetOwnTLSCertificate(txt)
+			ret.inst.db.SetOwnTLSCertificate(txt)
 		},
 	)
 
 	ret.button_load_own_certificate.Connect(
 		"clicked",
 		func() {
-			txt, err := ret.main_window.controller.DB.GetOwnTLSCertificate()
+			txt, err := ret.inst.db.GetOwnTLSCertificate()
 			if err != nil {
 				glib.IdleAdd(
 					func() {
 						d := gtk.MessageDialogNew(
-							ret.main_window.win,
+							ret.window,
 							0,
 							gtk.MESSAGE_ERROR,
 							gtk.BUTTONS_OK,
@@ -243,13 +308,6 @@ func UIWindowMainTabTLSCertificateNew(
 			ret.cert_editor_own.SetText(txt)
 		},
 	)
-
-	{
-		ret.cert_editor_own = UIKeyCertEditorNew(ret.main_window.win, "certificate")
-		r := ret.cert_editor_own.GetRoot()
-		ret.box_certificate.Add(r)
-		r.SetHExpand(true)
-	}
 
 	return ret, nil
 }

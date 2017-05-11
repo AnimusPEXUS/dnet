@@ -13,15 +13,16 @@ import (
 type UIWindowMainTabApplications struct {
 	main_window *UIWindowMain
 
-	button_refresh_application_modules *gtk.Button
-	button_refresh_application_presets *gtk.Button
-	button_enable_application_preset   *gtk.Button
-	button_disable_application_preset  *gtk.Button
-	button_accept_application          *gtk.Button
-	tw_application_presets             *gtk.TreeView
-	tw_application_modules             *gtk.TreeView
-	application_presets                *gtk.ListStore
-	application_modules                *gtk.ListStore
+	button_refresh_application_modules    *gtk.Button
+	button_refresh_application_presets    *gtk.Button
+	button_enable_application_preset      *gtk.Button
+	button_disable_application_preset     *gtk.Button
+	button_accept_application             *gtk.Button
+	button_open_window_application_preset *gtk.Button
+	tw_application_presets                *gtk.TreeView
+	tw_application_modules                *gtk.TreeView
+	application_presets                   *gtk.ListStore
+	application_modules                   *gtk.ListStore
 }
 
 func UIWindowMainTabApplicationsNew(
@@ -55,6 +56,12 @@ func UIWindowMainTabApplicationsNew(
 		t0, _ := builder.GetObject("button_disable_application_preset")
 		t1, _ := t0.(*gtk.Button)
 		ret.button_disable_application_preset = t1
+	}
+
+	{
+		t0, _ := builder.GetObject("button_open_window_application_preset")
+		t1, _ := t0.(*gtk.Button)
+		ret.button_open_window_application_preset = t1
 	}
 
 	{
@@ -247,7 +254,7 @@ func UIWindowMainTabApplicationsNew(
 					iter,
 					[]int{0, 1, 2, 3, 4, 5},
 					[]interface{}{
-						i.Name,
+						i.Name.Value(),
 						i.DBStatus.Builtin,
 						i.DBStatus.Enabled,
 						strings.Title(i.Instance.Status().String()),
@@ -292,7 +299,7 @@ func UIWindowMainTabApplicationsNew(
 						iter,
 						[]int{0, 1, 2, 3, 4},
 						[]interface{}{
-							mod.Name(),
+							mod.Name().Value(),
 							true,
 							"N/A",
 							"N/A",
@@ -398,6 +405,36 @@ func UIWindowMainTabApplicationsNew(
 			value, ok := ret.GetSelectedPresetName()
 			if ok {
 				ret.main_window.controller.EnableModule(value, false)
+			}
+		},
+	)
+
+	ret.button_open_window_application_preset.Connect(
+		"clicked",
+		func() {
+			value, ok := ret.GetSelectedPresetName()
+			if ok {
+
+				for _, i := range ret.main_window.controller.application_presets {
+					if i.Name.Value() == value {
+						if i.Module.HasWindow() {
+							err := i.Instance.ShowWindow()
+							if err != nil {
+								d := gtk.MessageDialogNew(
+									ret.main_window.win,
+									0,
+									gtk.MESSAGE_ERROR,
+									gtk.BUTTONS_OK,
+									"Trying to show window resulted in error: "+err.Error(),
+								)
+								d.Run()
+								d.Destroy()
+
+							}
+						}
+						break
+					}
+				}
 			}
 		},
 	)

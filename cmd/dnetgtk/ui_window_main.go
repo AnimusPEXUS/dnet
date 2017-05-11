@@ -1,4 +1,4 @@
-package builtin_keypair
+package main
 
 import (
 	"fmt"

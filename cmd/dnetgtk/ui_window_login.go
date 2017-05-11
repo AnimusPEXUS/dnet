@@ -102,51 +102,6 @@ func UIWindowLoginNew(preset_entry_name string) *UIWindowLogin {
 		ret,
 	)
 
-	ret.button_browse_storage.Connect(
-		"clicked",
-		func(
-			button *gtk.Button,
-			login_window *UIWindowLogin,
-		) {
-
-			dialog, err := gtk.DialogNew()
-			if err != nil {
-				panic(err.Error())
-			}
-
-			dialog.SetTransientFor(login_window.root)
-
-			chooser, err := gtk.FileChooserWidgetNew(gtk.FILE_CHOOSER_ACTION_OPEN)
-			if err != nil {
-				panic(err.Error())
-			}
-			dialog.AddButton("Open", gtk.RESPONSE_ACCEPT)
-			dialog.AddButton("Cancel", gtk.RESPONSE_CANCEL)
-
-			dialog.SetTitle("Select Storage")
-
-			box, err := dialog.GetContentArea()
-			if err != nil {
-				panic(err.Error())
-			}
-			box.Add(chooser)
-			box.ShowAll()
-
-			res := dialog.Run()
-
-			switch gtk.ResponseType(res) {
-			case gtk.RESPONSE_ACCEPT:
-				{
-					login_window.entry_name.SetText(chooser.GetFilename())
-				}
-			default:
-			}
-			dialog.Destroy()
-
-		},
-		ret,
-	)
-
 	return ret
 }
 

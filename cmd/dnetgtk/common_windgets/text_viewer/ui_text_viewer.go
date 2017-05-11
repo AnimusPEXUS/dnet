@@ -1,8 +1,9 @@
-package main
+package text_viewer
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"io/ioutil"
+
+	"github.com/gotk3/gotk3/gtk"
 )
 
 type UITextViewer struct {

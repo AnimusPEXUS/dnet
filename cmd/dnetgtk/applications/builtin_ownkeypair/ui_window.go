@@ -11,11 +11,11 @@ import (
 
 	// "github.com/AnimusPEXUS/dnet"
 	// "github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/dnet/common_widgets/key_cert_editor"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/key_cert_editor"
 )
 
 type UIWindow struct {
-	//	main_window *UIWindowMain
+	inst *Instance
 
 	window                       *gtk.Window
 	button_generate_own_key_pair *gtk.Button
@@ -25,9 +25,11 @@ type UIWindow struct {
 	key_editor_own               *key_cert_editor.UIKeyCertEditor
 }
 
-func UIWindowNew() (*UIWindow, error) {
+func UIWindowNew(inst *Instance) (*UIWindow, error) {
 
 	ret := new(UIWindow)
+
+	ret.inst = inst
 
 	builder, err := gtk.BuilderNew()
 	if err != nil {
@@ -75,11 +77,19 @@ func UIWindowNew() (*UIWindow, error) {
 	}
 
 	{
-		ret.key_editor_own = UIKeyCertEditorNew(ret.main_window.win, "private")
+		ret.key_editor_own =
+			key_cert_editor.UIKeyCertEditorNew(ret.window, "private")
 		r := ret.key_editor_own.GetRoot()
 		ret.box_keys.Add(r)
 		r.SetHExpand(true)
 	}
+
+	ret.window.Connect(
+		"destroy",
+		func() {
+			ret.inst.win = nil
+		},
+	)
 
 	ret.button_generate_own_key_pair.Connect(
 		"clicked",
@@ -93,7 +103,7 @@ func UIWindowNew() (*UIWindow, error) {
 					glib.IdleAdd(
 						func() {
 							d := gtk.MessageDialogNew(
-								ret.main_window.win,
+								ret.window,
 								0,
 								gtk.MESSAGE_ERROR,
 								gtk.BUTTONS_OK,
@@ -128,7 +138,7 @@ func UIWindowNew() (*UIWindow, error) {
 				glib.IdleAdd(
 					func() {
 						d := gtk.MessageDialogNew(
-							ret.main_window.win,
+							ret.window,
 							0,
 							gtk.MESSAGE_ERROR,
 							gtk.BUTTONS_OK,
@@ -140,19 +150,48 @@ func UIWindowNew() (*UIWindow, error) {
 				)
 				return
 			}
-			ret.main_window.controller.DB.SetOwnPrivKey(txt)
+			err = ret.inst.db.SetOwnPrivKey(txt)
+			if err != nil {
+				glib.IdleAdd(
+					func() {
+						d := gtk.MessageDialogNew(
+							ret.window,
+							0,
+							gtk.MESSAGE_ERROR,
+							gtk.BUTTONS_OK,
+							"Key saving error: "+err.Error(),
+						)
+						d.Run()
+						d.Destroy()
+					},
+				)
+			} else {
+				glib.IdleAdd(
+					func() {
+						d := gtk.MessageDialogNew(
+							ret.window,
+							0,
+							gtk.MESSAGE_INFO,
+							gtk.BUTTONS_OK,
+							"Saved ",
+						)
+						d.Run()
+						d.Destroy()
+					},
+				)
+			}
 		},
 	)
 
 	ret.button_load_own_key_pair.Connect(
 		"clicked",
 		func() {
-			txt, err := ret.main_window.controller.DB.GetOwnPrivKey()
+			txt, err := ret.inst.db.GetOwnPrivKey()
 			if err != nil {
 				glib.IdleAdd(
 					func() {
 						d := gtk.MessageDialogNew(
-							ret.main_window.win,
+							ret.window,
 							0,
 							gtk.MESSAGE_ERROR,
 							gtk.BUTTONS_OK,

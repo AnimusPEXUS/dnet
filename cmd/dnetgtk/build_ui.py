@@ -6,18 +6,21 @@ import os.path
 import glob
 
 WIDGETS = [
-    './common_windgets/key_cert_editor'
+    './common_windgets/key_cert_editor',
+    './common_windgets/text_viewer',
+    './common_windgets/progress_window'
     ]
 
 MODULES = [
-    './applications/builtin_ownkeypair'
+    './applications/builtin_ownkeypair',
+    './applications/builtin_owntlscert'
 ]
 
 DNETGETK = [
     "."
 ]
 
-ALL_DIRS = WIDGETS + MODULES + DNETGETK
+ALL_DIRS = sorted(WIDGETS + MODULES + DNETGETK)
 
 print("generating ui code")
 

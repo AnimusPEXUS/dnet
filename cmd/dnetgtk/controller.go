@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_dummy"
 	"github.com/AnimusPEXUS/dnet/common_types"
+
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_owntlscert"
 )
 
 //const CONFIG_DIR = "~/.config/DNet"
@@ -38,7 +40,8 @@ func NewController(username string, key string) (*Controller, error) {
 	}
 
 	ret.builtin_app_modules = []common_types.ApplicationModule{
-		//&builtin_dummy.Module{},
+		&builtin_ownkeypair.Module{},
+		&builtin_owntlscert.Module{},
 	}
 
 	ret.ModSearcher = ModuleSercherNew(ret.builtin_app_modules)

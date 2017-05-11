@@ -44,6 +44,7 @@ func ControllerApplicationWrapNew(
 	}
 
 	ret.Module = mod
+	ret.Name = ret.Module.Name()
 
 	dbstat, err := controller.DB.GetApplicationStatus(name.Value())
 	if err != nil {
@@ -80,8 +81,6 @@ func ControllerApplicationWrapNew(
 		return nil, errors.New("Error instantinating module: " + err.Error())
 	}
 	ret.Instance = inst
-
-	ret.Name = ret.Module.Name()
 
 	return ret, nil
 

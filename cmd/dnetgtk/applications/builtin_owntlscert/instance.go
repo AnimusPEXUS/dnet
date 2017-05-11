@@ -1,4 +1,4 @@
-package builtin_ownkeypair
+package builtin_owntlscert
 
 import (
 	"errors"
@@ -44,7 +44,7 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 	common_types.ApplicationModule,
 	error,
 ) {
-	for _, i := range []string{"builtin_owntlscert"} {
+	for _, i := range []string{} {
 		if local_svc_name == i {
 			return self, self.mod, nil
 		}
@@ -62,8 +62,4 @@ func (self *Instance) ShowWindow() error {
 	}
 	self.win.window.ShowAll()
 	return nil
-}
-
-func (self *Instance) GetOwnPrivKey() (string, error) {
-	return self.db.GetOwnPrivKey()
 }
