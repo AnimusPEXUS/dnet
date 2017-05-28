@@ -85,18 +85,3 @@ func ControllerApplicationWrapNew(
 	return ret, nil
 
 }
-func (self *ControllerApplicationWrap) Start() {
-	self.Instance.Start()
-	return
-}
-
-func (self *ControllerApplicationWrap) Stop() {
-	self.Instance.Stop()
-	return
-}
-
-func (
-	self *ControllerApplicationWrap,
-) Status() *common_types.WorkerStatus {
-	return self.Instance.Status()
-}

@@ -35,7 +35,11 @@ func (self *Module) DependsOn() []string {
 	return []string{}
 }
 
-func (self *Module) HasWindow() bool {
+func (self *Module) IsWorker() bool {
+	return false
+}
+
+func (self *Module) HaveUI() bool {
 	return true
 }
 

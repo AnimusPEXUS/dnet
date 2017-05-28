@@ -59,3 +59,23 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 	//fmt.Println("  failure")
 	return nil, nil, errors.New("module not found")
 }
+
+func (self *ControllerCommunicatorForApp) ServeConnection(
+	to_service string,
+	who *Address,
+	conn net.Conn,
+) error {
+
+	caller_name := self.wrap.Name.Value()
+
+	if caller_name != "builtin_net" {
+		fmt.Printf(
+			"module %s tried to access it's communicator's "+
+				"ServeConnection() method\n",
+			caller_name,
+		)
+		return errors.New("only `builtin_net' module may access this method")
+	}
+
+	return self.controller.ServeConnection(to_service, who, conn)
+}

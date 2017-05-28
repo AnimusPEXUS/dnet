@@ -29,6 +29,15 @@ type ApplicationCommunicator interface {
 		error,
 	)
 
+	// this is excucively for builtin_net module. no any other module should
+	// be able to call it. this should call controller's incaomming connections
+	// handeling function
+	ServeConnection(
+		to_service string,
+		who *Address,
+		conn net.Conn,
+	) error
+
 	GetOtherApplicationInstance(name string) (
 		ApplicationModuleInstance,
 		ApplicationModule,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_owntlscert"
 )
@@ -42,6 +43,7 @@ func NewController(username string, key string) (*Controller, error) {
 	ret.builtin_app_modules = []common_types.ApplicationModule{
 		&builtin_ownkeypair.Module{},
 		&builtin_owntlscert.Module{},
+		&builtin_net.Module{},
 	}
 
 	ret.ModSearcher = ModuleSercherNew(ret.builtin_app_modules)
@@ -94,11 +96,6 @@ func (self *Controller) EnableModule(name string, value bool) error {
 			i.DBStatus.Enabled = value
 			stat.Enabled = value
 			self.DB.SetApplicationStatus(stat)
-			if value {
-				i.Start()
-			} else {
-				i.Stop()
-			}
 			return nil
 		}
 	}
@@ -149,12 +146,6 @@ func (self *Controller) acceptModuleNoSaveToDB(
 	wrap, err := ControllerApplicationWrapNew(self, builtin, name, checksum)
 	if err != nil {
 		panic("module wrapping error: " + err.Error())
-	}
-
-	if wrap.DBStatus.Enabled {
-		wrap.Start()
-	} else {
-		wrap.Stop()
 	}
 
 	self.application_presets = append(
@@ -215,6 +206,17 @@ func (self *Controller) RestorePresetsFromStorage() {
 	}
 }
 
+
+func (self *Controller) serveConnectionCB func(
+		to_svc string,
+		who *common_types.Address,
+		conn net.Conn,
+	) error {
+	
+	
+	
+	}
+	
 /*
 Key/ReKey code for when sqlcipher will be available for go
 

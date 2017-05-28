@@ -15,17 +15,7 @@ type Instance struct {
 	win *UIWindow
 }
 
-func (self *Instance) Start() {
-}
-
-func (self *Instance) Stop() {
-}
-
-func (self *Instance) Status() *common_types.WorkerStatus {
-	return &common_types.WorkerStatus{}
-}
-
-func (self *Instance) AcceptConn(
+func (self *Instance) ServeConn(
 	local bool,
 	local_svc_name string,
 	to_svc string,
@@ -52,7 +42,7 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 	return nil, nil, errors.New("access denied")
 }
 
-func (self *Instance) ShowWindow() error {
+func (self *Instance) ShowUI() error {
 	if self.win == nil {
 		w, err := UIWindowNew(self)
 		if err != nil {

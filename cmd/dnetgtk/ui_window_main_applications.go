@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -143,20 +142,10 @@ func UIWindowMainTabApplicationsNew(
 			{
 				rend, _ := gtk.CellRendererTextNew()
 				column, _ := gtk.TreeViewColumnNewWithAttribute(
-					"Status",
-					rend,
-					"text",
-					3,
-				)
-				ret.tw_application_presets.AppendColumn(column)
-			}
-			{
-				rend, _ := gtk.CellRendererTextNew()
-				column, _ := gtk.TreeViewColumnNewWithAttribute(
 					"Checksum",
 					rend,
 					"text",
-					4,
+					3,
 				)
 				ret.tw_application_presets.AppendColumn(column)
 			}
@@ -167,7 +156,7 @@ func UIWindowMainTabApplicationsNew(
 					"Last ReKey Time",
 					rend,
 					"text",
-					5,
+					4,
 				)
 				ret.tw_application_presets.AppendColumn(column)
 			}
@@ -252,12 +241,11 @@ func UIWindowMainTabApplicationsNew(
 				}
 				mdl.Set(
 					iter,
-					[]int{0, 1, 2, 3, 4, 5},
+					[]int{0, 1, 2, 3, 4},
 					[]interface{}{
 						i.Name.Value(),
 						i.DBStatus.Builtin,
 						i.DBStatus.Enabled,
-						strings.Title(i.Instance.Status().String()),
 						cs,
 						i.DBStatus.LastDBReKey.String(),
 					},
@@ -417,8 +405,8 @@ func UIWindowMainTabApplicationsNew(
 
 				for _, i := range ret.main_window.controller.application_presets {
 					if i.Name.Value() == value {
-						if i.Module.HasWindow() {
-							err := i.Instance.ShowWindow()
+						if i.Module.HaveUI() {
+							err := i.Instance.ShowUI()
 							if err != nil {
 								d := gtk.MessageDialogNew(
 									ret.main_window.win,

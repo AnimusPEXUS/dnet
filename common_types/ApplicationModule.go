@@ -22,8 +22,11 @@ type ApplicationModule interface {
 
 	DependsOn() []string // module names which required to be enabled
 
+	// If instance Start() Stop() and Status() methods have sence
+	IsWorker() bool
+
 	// If instance can be called to show it's window
-	HasWindow() bool
+	HaveUI() bool
 
 	//////////////////
 
@@ -49,11 +52,8 @@ type ApplicationModule interface {
 }
 
 type ApplicationModuleInstance interface {
-	Start()
-	Stop()
-	Status() *WorkerStatus
 
-	AcceptConn(
+	ServeConn(
 		local bool,
 		calling_svc_name string, // this is meaningfull only if `local' is true
 		to_svc string,
@@ -77,5 +77,5 @@ type ApplicationModuleInstance interface {
 	// result's to false, then ShowWindow() should return non-nil error stating
 	// so. anyway, DNet Software should not allow user to call ShowWindow() if
 	// HasWindow() results to false
-	ShowWindow() error
+	ShowUI() error
 }
