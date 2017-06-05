@@ -1,16 +1,16 @@
 package builtin_net
 
 import (
-	"fmt"
+	//	"fmt"
 
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
+	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 type Module struct {
 	name *common_types.ModuleName
 
-	network_modules map[string]common_types.NetworkApplicationModule
+	network_modules map[string]common_types.NetworkModule
 }
 
 func (self *Module) Name() *common_types.ModuleName {
@@ -56,23 +56,35 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret.db = &DB{db: com.GetDBConnection()}
 	ret.mod = self
 
-	if !ret.db.db.HasTable(&OwnData{}) {
-		if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
-			// TODO: this sort of error handeling shold be reworker her and in
-			//       ither modules
-			fmt.Println("builtin_net:", "Can't create table:", err.Error())
+	/*
+		if !ret.db.db.HasTable(&OwnData{}) {
+			if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
+				// TODO: this sort of error handeling shold be reworker her and in
+				//       ither modules
+				fmt.Println("builtin_net:", "Can't create table:", err.Error())
+			}
+		}
+	*/
+
+	// ret.module_instances = make(map[string]common_types.NetworkModuleInstance)
+
+	for key, value := range self.network_modules {
+		if inst, err := value.Instance(); err != nil {
+			panic("error: " + err.Error())
+		} else {
+			ret.module_instances[key] = inst
 		}
 	}
 
-	ret.network_modules["builtin_net_ip"] = &builtin_net_ip.Module().Instance()
-
-	if mod, ok := ret.com.GetOtheModuleInstance("builtin_net_ip"); ok {
-		ret.ip_module = mod
-	} else {
-		return nil, errors.New(
-			"builtin_net: module `builtin_net_ip' is required for work",
-		)
-	}
+	/*
+		if mod, ok := ret.com.GetOtheModuleInstance("builtin_net_ip"); ok {
+			ret.ip_module = mod
+		} else {
+			return nil, errors.New(
+				"builtin_net: module `builtin_net_ip' is required for work",
+			)
+		}
+	*/
 
 	return ret, nil
 }

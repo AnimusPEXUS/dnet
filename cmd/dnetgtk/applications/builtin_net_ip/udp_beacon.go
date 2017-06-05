@@ -1,9 +1,11 @@
 package builtin_net_ip
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
@@ -69,11 +71,11 @@ func (self *UDPBeacon) threadWorker() {
 	self.w.Working = true
 	self.w.Starting = false
 
-	for !stop_flag {
+	for !self.stop_flag {
 
 		// TODO: probably it's better to specify something more specific for
 		//			 second parameter, but looks like it is works well enough with nil.
-		conn, err := net.DialUDP("udp", nil, add)
+		conn, err := net.DialUDP("udp", nil, addr)
 		if err != nil {
 			//TODO: should it bailout on error?
 			fmt.Println("error Dialing UDP:", err)
@@ -91,7 +93,9 @@ func (self *UDPBeacon) threadWorker() {
 			return
 		}
 
-		sent_len, err := conn.Write(msg_to_write)
+		_, err = conn.Write(msg_to_write)
+		//sent_len, err := conn.Write(msg_to_write)
+		// TODO: maybe need something to do with sent_len
 		if err != nil {
 			//TODO: should it bailout on error?
 			fmt.Println("error sending UDP message:", err)

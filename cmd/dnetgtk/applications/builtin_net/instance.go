@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
+	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
@@ -13,31 +13,34 @@ type Instance struct {
 	db  *DB
 	mod *Module
 
-	// win *UIWindow
-	//worker *NetworkWorker
+	w *common_types.WorkerStatus
 
-	module_instances map[string]common_types.NetworkApplicationModuleInstance
+	module_instances map[string]common_types.NetworkModuleInstance
 }
 
 func (self *Instance) Start() {
-
 	go func() {
-		for _, i := range self.mod.network_modules {
-			ins := i.Instance()
-			self.network_module_instances = append(
-				self.network_module_instances,
-				ins,
-			)
+		for _, value := range self.module_instances {
+			go value.Start()
 		}
 	}()
 }
 
 func (self *Instance) Stop() {
-	go self.ip_module.Stop()
+	go func() {
+		for _, value := range self.module_instances {
+			go value.Stop()
+		}
+	}()
 }
 
 func (self *Instance) Status() *common_types.WorkerStatus {
-	return self.ip_module.Status()
+	t := make([]*common_types.WorkerStatus, 0)
+	for _, value := range self.module_instances {
+		t = append(t, value.Status())
+	}
+	self.w.Sum(t)
+	return self.w
 }
 
 func (self *Instance) ServeConn(
@@ -62,10 +65,6 @@ func (self *Instance) ShowUI() error {
 	return errors.New("not implimented")
 }
 
-func (self *Instance) GetOwnPrivKey() (string, error) {
-	return self.db.GetOwnPrivKey()
-}
-
 func (self *Instance) Connect(
 	to_who *common_types.Address,
 	as_service string,
@@ -74,14 +73,5 @@ func (self *Instance) Connect(
 	*net.Conn,
 	error,
 ) {
-
-}
-
-func (self *Instance) ServeConn(
-	local bool,
-	calling_svc_name string, // this is meaningfull only if `local' is true
-	to_svc string,
-	who *Address,
-	conn net.Conn,
-) error {
+	return nil, nil
 }

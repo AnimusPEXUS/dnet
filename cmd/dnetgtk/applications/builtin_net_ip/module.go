@@ -7,6 +7,7 @@ import (
 )
 
 var MULTICAST_ADDRESS = "224.0.0.1:5555"
+var DESIGNATED_PORT = 5555
 
 type Module struct {
 	name *common_types.ModuleName
@@ -44,14 +45,19 @@ func (self *Module) HaveUI() bool {
 	return true
 }
 
-func (self *Module) Instance(com common_types.ApplicationCommunicator) (
-	common_types.ApplicationModuleInstance,
+func (self *Module) Instance() (
+	common_types.NetworkModuleInstance,
 	error,
 ) {
+
+	//net_mod, ok := application_net.(*builtin_net.Module)
+
+	//ret, err := InstanceNew(application_net)
+
 	ret := &Instance{}
-	ret.com = com
-	ret.db = &DB{db: com.GetDBConnection()}
-	ret.mod = self
+	//ret.com = com
+	//ret.db = &DB{db: com.GetDBConnection()}
+	//ret.mod = self
 
 	return ret, nil
 }

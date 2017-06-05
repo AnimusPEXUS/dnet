@@ -4,7 +4,7 @@ import (
 	"net"
 )
 
-type NetworkApplicationModule interface {
+type NetworkModule interface {
 	Name() *ModuleName
 
 	Title() string
@@ -16,13 +16,13 @@ type NetworkApplicationModule interface {
 
 	HaveUI() bool
 
-	Instance(com ApplicationCommunicator) (
-		NetworkApplicationModuleInstance,
+	Instance() (
+		NetworkModuleInstance,
 		error,
 	)
 }
 
-type NetworkApplicationModuleInstance interface {
+type NetworkModuleInstance interface {
 
 	/*
 			Talking about "serving" connections. possibly in the furure DNet

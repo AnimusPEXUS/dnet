@@ -1,6 +1,7 @@
 package builtin_net_ip
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -66,7 +67,7 @@ func (self *UDPLocator) threadWorker() {
 		return
 	}
 
-	conn, err := net.ListenMulticastUDP("udp", addr)
+	conn, err := net.ListenMulticastUDP("udp", nil, addr)
 	if err != nil {
 		self.err = errors.New("error making listener: " + err.Error())
 		return
@@ -74,12 +75,12 @@ func (self *UDPLocator) threadWorker() {
 
 	defer conn.Close()
 
-	var accept_buff [1024]byte
+	accept_buff := make([]byte, 1024)
 
 	self.w.Working = true
 	self.w.Starting = false
 
-	for !stop_flag {
+	for !self.stop_flag {
 		for i := 0; i != len(accept_buff); i++ {
 			accept_buff[i] = 0
 		}
@@ -87,7 +88,13 @@ func (self *UDPLocator) threadWorker() {
 		length, addr, err := conn.ReadFromUDP(accept_buff)
 		if err != nil {
 			self.err = errors.New("error reading UDP message:" + err.Error())
-			return // TODO: probably not every error should lead to thread termination
+			// TODO: probably not every error should lead to thread termination
+			return
+		}
+
+		if length == 1024 {
+			self.err = errors.New("error reading UDP message: message too large")
+			return
 		}
 
 		parsed, err := common_types.ParseUDPBeaconMessage(accept_buff)
@@ -98,7 +105,7 @@ func (self *UDPLocator) threadWorker() {
 		fmt.Println("accepted DNet UDP beacon message: '%s' from %v", parsed, addr)
 
 		go func() {
-			self.instance.UDPBeaconSpotted(parsed)
+			self.instance.IncommingUDPBeaconMessage(addr, parsed)
 		}()
 
 	}
