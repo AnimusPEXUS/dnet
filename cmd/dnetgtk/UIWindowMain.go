@@ -5,7 +5,10 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 	//"github.com/AnimusPEXUS/dnet"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/log_viewer"
 	//"github.com/AnimusPEXUS/dnet/common_types"
+
+	"github.com/AnimusPEXUS/gologger"
 )
 
 type UIWindowMain struct {
@@ -28,13 +31,18 @@ type UIWindowMain struct {
 	button_home     *gtk.Button
 	mi_storage      *gtk.MenuItem
 	mi_about        *gtk.MenuItem
+	box_for_log     *gtk.Box
 
 	notebook_main *gtk.Notebook
+
+	log *gologger.Logger
 }
 
 func UIWindowMainNew(controller *Controller) *UIWindowMain {
 
 	ret := new(UIWindowMain)
+
+	ret.log = gologger.New()
 
 	ret.controller = controller
 
@@ -75,6 +83,14 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		t1, _ := t0.(*gtk.ToggleButton)
 		ret.button_online = t1
 	}
+
+	{
+		t0, _ := builder.GetObject("box_for_log")
+		t1, _ := t0.(*gtk.ToggleButton)
+		ret.box_for_log = t1
+	}
+
+	ret.box_for_log.add(log_viewer.UILogViewerNew(self.log).GetWidget())
 
 	ret.button_online.Connect(
 		"toggled",

@@ -10,7 +10,7 @@ import (
 type Module struct {
 	name *common_types.ModuleName
 
-	network_modules map[string]common_types.NetworkModule
+	//network_modules map[string]common_types.ApplicationModule
 }
 
 func (self *Module) Name() *common_types.ModuleName {
@@ -43,8 +43,8 @@ func (self *Module) IsWorker() bool {
 	return true
 }
 
-func (self *Module) HasUI() bool {
-	return false
+func (self *Module) HaveUI() bool {
+	return true
 }
 
 func (self *Module) Instance(com common_types.ApplicationCommunicator) (
@@ -56,32 +56,20 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret.db = &DB{db: com.GetDBConnection()}
 	ret.mod = self
 
-	/*
-		if !ret.db.db.HasTable(&OwnData{}) {
-			if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
-				// TODO: this sort of error handeling shold be reworker her and in
-				//       ither modules
-				fmt.Println("builtin_net:", "Can't create table:", err.Error())
-			}
-		}
-	*/
-
-	// ret.module_instances = make(map[string]common_types.NetworkModuleInstance)
-
-	for key, value := range self.network_modules {
-		if inst, err := value.Instance(); err != nil {
-			panic("error: " + err.Error())
-		} else {
-			ret.module_instances[key] = inst
-		}
-	}
+	ret.module_instances = make(
+		map[string]common_types.ApplicationModuleInstance,
+	)
 
 	/*
-		if mod, ok := ret.com.GetOtheModuleInstance("builtin_net_ip"); ok {
-			ret.ip_module = mod
+		// this is not a good time to populate ret.module_instances,
+		// as DNet may be didn't yet loaded all modules
+
+		if mod, ok := ret.com.GetOtherModuleInstance("builtin_net_ip"); !ok {
+			panic("error: module builtin_net_ip is required")
 		} else {
-			return nil, errors.New(
-				"builtin_net: module `builtin_net_ip' is required for work",
+			ret.module_instances = append(
+				ret.module_instances,
+				mod,
 			)
 		}
 	*/

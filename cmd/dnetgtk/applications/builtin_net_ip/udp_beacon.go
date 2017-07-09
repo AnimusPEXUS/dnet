@@ -4,74 +4,53 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type UDPBeacon struct {
-	w *common_types.WorkerStatus
+	*worker.Worker
 
 	instance *Instance
-
-	stop_flag bool
-	err       error
-
-	start_stop_mutex *sync.Mutex
 }
 
-func UDPBeaconNew(instance *Instance) (*UDPBeacon, error) {
+func UDPBeaconNew(instance *Instance) *UDPBeacon {
 	ret := new(UDPBeacon)
 
 	ret.instance = instance
-	ret.w = common_types.NewWorkerStatus()
-	ret.err = nil
 
-	return ret, nil
+	ret.Worker = worker.New(ret.threadWorker)
+
+	return ret
 }
 
-func (self *UDPBeacon) Error() error {
-	return self.err
-}
+func (self *UDPBeacon) threadWorker(
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
 
-func (self *UDPBeacon) Start() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	set_error func(error),
 
-		if self.w.Stopped() {
-			self.stop_flag = false
-			go self.threadWorker()
-		}
-	}()
-}
+	is_stop_flag func() bool,
 
-func (self *UDPBeacon) Stop() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	data interface{},
+) {
 
-		self.stop_flag = true
-	}()
-}
-
-func (self *UDPBeacon) threadWorker() {
-
-	defer self.w.Reset()
-
-	self.w.Starting = true
+	set_starting()
+	defer set_stopped()
 
 	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)
 	if err != nil {
-		self.err = err
+		set_error(err)
 		return
 	}
 
-	self.w.Working = true
-	self.w.Starting = false
+	set_working()
 
-	for !self.stop_flag {
+	for !is_stop_flag() {
 
 		// TODO: probably it's better to specify something more specific for
 		//			 second parameter, but looks like it is works well enough with nil.
@@ -87,8 +66,10 @@ func (self *UDPBeacon) threadWorker() {
 			common_types.RenderUDPBeaconMessage(self.instance.UDPBeaconMessage())
 
 		if len(msg_to_write) > 1024 {
-			self.err = errors.New(
-				"rendered beacon message exceeds sane maximum length",
+			set_error(
+				errors.New(
+					"rendered beacon message exceeds sane maximum length",
+				),
 			)
 			return
 		}

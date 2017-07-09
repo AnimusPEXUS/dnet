@@ -2,8 +2,10 @@ package builtin_net_ip
 
 import (
 	//"fmt"
+	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 var MULTICAST_ADDRESS = "224.0.0.1:5555"
@@ -45,8 +47,8 @@ func (self *Module) HaveUI() bool {
 	return true
 }
 
-func (self *Module) Instance() (
-	common_types.NetworkModuleInstance,
+func (self *Module) Instance(com common_types.ApplicationCommunicator) (
+	common_types.ApplicationModuleInstance,
 	error,
 ) {
 
@@ -55,9 +57,13 @@ func (self *Module) Instance() (
 	//ret, err := InstanceNew(application_net)
 
 	ret := &Instance{}
-	//ret.com = com
+	ret.com = com
+	ret.mod = self
 	//ret.db = &DB{db: com.GetDBConnection()}
-	//ret.mod = self
+
+	ret.window_show_sync = &sync.Mutex{}
+
+	ret.Worker = worker.New(ret.threadWorker)
 
 	return ret, nil
 }

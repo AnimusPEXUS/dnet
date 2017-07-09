@@ -8,12 +8,14 @@ import glob
 WIDGETS = [
     './common_windgets/key_cert_editor',
     './common_windgets/text_viewer',
-    './common_windgets/progress_window'
+    './common_windgets/progress_window',
+    './common_windgets/log_viewer'
     ]
 
 MODULES = [
     './applications/builtin_ownkeypair',
-    './applications/builtin_owntlscert'
+    './applications/builtin_owntlscert',
+    './applications/builtin_net_ip',
 ]
 
 DNETGETK = [

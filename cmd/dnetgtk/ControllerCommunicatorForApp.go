@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	// "fmt"
+	"fmt"
 	"net"
 
 	"github.com/jinzhu/gorm"
@@ -40,6 +40,16 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 	common_types.ApplicationModule,
 	error,
 ) {
+
+	/*
+		if !self.controller.module_instances_added {
+			// NOTE: hitting this panic should be considered programming error
+			// TODO: check what this can't be exploited somehow
+			panic("programming error: modules not instantiated yet")
+			return nil, nil, errors.New("modules not instantiated yet")
+		}
+	*/
+
 	caller_name := self.wrap.Name.Value()
 
 	/*
@@ -62,7 +72,7 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 
 func (self *ControllerCommunicatorForApp) ServeConnection(
 	to_service string,
-	who *Address,
+	who *common_types.Address,
 	conn net.Conn,
 ) error {
 

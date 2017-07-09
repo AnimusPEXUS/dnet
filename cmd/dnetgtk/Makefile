@@ -6,5 +6,6 @@
 
 
 all:
+	find -type f -name '*.glade~' -print -delete
 	python3 ./build_ui.py
 	go build -v

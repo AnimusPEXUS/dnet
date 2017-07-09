@@ -4,72 +4,52 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type UDPLocator struct {
-	w *common_types.WorkerStatus
+	*worker.Worker
 
 	instance *Instance
-
-	stop_flag bool
-	err       error
-
-	start_stop_mutex *sync.Mutex
 }
 
 func UDPLocatorNew(instance *Instance) (*UDPLocator, error) {
 	ret := new(UDPLocator)
 
 	ret.instance = instance
-	ret.w = common_types.NewWorkerStatus()
-	ret.err = nil
+
+	ret.Worker = worker.New(ret.threadWorker)
 
 	return ret, nil
 }
 
-func (self *UDPLocator) Error() error {
-	return self.err
-}
+func (self *UDPLocator) threadWorker(
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
 
-func (self *UDPLocator) Start() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	set_error func(error),
 
-		if self.w.Stopped() {
-			self.stop_flag = false
-			go self.threadWorker()
-		}
-	}()
-}
+	is_stop_flag func() bool,
 
-func (self *UDPLocator) Stop() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	data interface{},
+) {
 
-		self.stop_flag = true
-	}()
-}
-
-func (self *UDPLocator) threadWorker() {
-
-	defer self.w.Reset()
-
-	self.w.Starting = true
+	set_starting()
+	defer set_stopped()
 
 	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)
 	if err != nil {
-		self.err = err
+		set_error(err)
 		return
 	}
 
 	conn, err := net.ListenMulticastUDP("udp", nil, addr)
 	if err != nil {
-		self.err = errors.New("error making listener: " + err.Error())
+		set_error(errors.New("error making listener: " + err.Error()))
 		return
 	}
 
@@ -77,23 +57,22 @@ func (self *UDPLocator) threadWorker() {
 
 	accept_buff := make([]byte, 1024)
 
-	self.w.Working = true
-	self.w.Starting = false
+	set_working()
 
-	for !self.stop_flag {
+	for !is_stop_flag() {
 		for i := 0; i != len(accept_buff); i++ {
 			accept_buff[i] = 0
 		}
 
 		length, addr, err := conn.ReadFromUDP(accept_buff)
 		if err != nil {
-			self.err = errors.New("error reading UDP message:" + err.Error())
+			set_error(errors.New("error reading UDP message:" + err.Error()))
 			// TODO: probably not every error should lead to thread termination
 			return
 		}
 
 		if length == 1024 {
-			self.err = errors.New("error reading UDP message: message too large")
+			set_error(errors.New("error reading UDP message: message too large"))
 			return
 		}
 

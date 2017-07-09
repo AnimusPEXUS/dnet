@@ -47,7 +47,7 @@ func (self *ModuleSercherSearchResult) Checksum() string {
 }
 
 /*
- Warning: Using .Mod() if .builtin == false, presumes checkking .path's
+ Warning: Using .Mod() if .builtin == false, presumes checking .path's
  checksum consistency and opening it as go plugin, so use with caution!
 */
 func (self *ModuleSercherSearchResult) Mod() (

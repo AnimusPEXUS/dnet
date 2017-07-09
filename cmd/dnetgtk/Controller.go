@@ -3,10 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net"
+
+	"github.com/AnimusPEXUS/dnet"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_owntlscert"
 )
@@ -17,6 +21,8 @@ type Controller struct {
 	//db_file  string
 	//password string
 	//opened   bool
+
+	dnet_controller *dnet.Controller
 
 	DB          *DB
 	ModSearcher *ModuleSercher
@@ -44,6 +50,7 @@ func NewController(username string, key string) (*Controller, error) {
 		&builtin_ownkeypair.Module{},
 		&builtin_owntlscert.Module{},
 		&builtin_net.Module{},
+		&builtin_net_ip.Module{},
 	}
 
 	ret.ModSearcher = ModuleSercherNew(ret.builtin_app_modules)
@@ -206,17 +213,14 @@ func (self *Controller) RestorePresetsFromStorage() {
 	}
 }
 
+func (self *Controller) ServeConnection(
+	to_svc string,
+	who *common_types.Address,
+	conn net.Conn,
+) error {
+	return errors.New("error")
+}
 
-func (self *Controller) serveConnectionCB func(
-		to_svc string,
-		who *common_types.Address,
-		conn net.Conn,
-	) error {
-	
-	
-	
-	}
-	
 /*
 Key/ReKey code for when sqlcipher will be available for go
 

@@ -3,6 +3,8 @@ package common_types
 import (
 	"net"
 	"regexp"
+
+	"github.com/AnimusPEXUS/workerstatus"
 )
 
 func IsApplicationNameCorrect(text string) bool {
@@ -22,8 +24,11 @@ type ApplicationModule interface {
 
 	DependsOn() []string // module names which required to be enabled
 
-	// If instance Start() Stop() and Status() methods have sence
+	// If calling instance's Start() Stop() and Status() methods have sence
 	IsWorker() bool
+
+	// If calling instance's ListDirectNodes() method has sence
+	IsNetwork() bool
 
 	// If instance can be called to show it's window
 	HaveUI() bool
@@ -53,9 +58,35 @@ type ApplicationModule interface {
 
 type ApplicationModuleInstance interface {
 
+	// Those may be called only if Module's IsWorker() returns true.
+	// If Module's IsWorker() returns false, instance have simply
+	// impliment them as noop.
+	Start()
+	Stop()
+	Status() *workerstatus.WorkerStatus
+
+	// for usage via ApplicationCommunicator
+	/* DECLINED: if other app want's to Start/Stop/Status other module - it
+	should ask DNet controller.
+	GetStartStopStatus(calling_app_name string) (
+		func(),
+		func(),
+		func() *workerstatus.WorkerStatus,
+	)
+	*/
+
 	ServeConn(
 		local bool,
-		calling_svc_name string, // this is meaningfull only if `local' is true
+		calling_app_name string, // this is meaningfull only if `local' is true
+		to_svc string,
+		who *Address,
+		conn net.Conn,
+	) error
+
+	// for usage via ApplicationCommunicator
+	GetServeConn(calling_app_name string) func(
+		local bool,
+		calling_app_name string,
 		to_svc string,
 		who *Address,
 		conn net.Conn,
@@ -64,18 +95,18 @@ type ApplicationModuleInstance interface {
 	// this method may be called only by local services.
 	// this method is for direct access for trusted modules (services), as this
 	// is mutch faster than socket connection.
-	// ApplicationModuleInstance, using calling_svc_name, should decide, to 
+	// ApplicationModuleInstance, using calling_svc_name, should decide, to
 	// return valid values, or to return nils and error.
 
-	RequestInstance(calling_svc_name string) (
+	ReturnSelf(calling_app_name string) (
 		ApplicationModuleInstance,
 		ApplicationModule,
 		error,
 	)
 
-	// should show module's window. If module has no window and it's HasWindow()
-	// result's to false, then ShowWindow() should return non-nil error stating
-	// so. anyway, DNet Software should not allow user to call ShowWindow() if
-	// HasWindow() results to false
-	ShowUI() error
+	// should return module's ui of some sort. If module has no window and it's
+	// HaveUI() result's to false, then GetUI() should return non-nil error
+	// stating so. anyway, DNet Implimenting Software should not allow user to 
+	// call GetUI() if HaveUI() results to false
+	GetUI() interface{}
 }

@@ -2,6 +2,8 @@ package common_types
 
 import (
 	"net"
+	
+	"github.com/AnimusPEXUS/workerstatus"
 )
 
 type NetworkModule interface {
@@ -41,7 +43,7 @@ type NetworkModuleInstance interface {
 
 	Start()
 	Stop()
-	Status() *WorkerStatus
+	Status() *workerstatus.WorkerStatus
 
 	Connect(
 		to_who *Address,

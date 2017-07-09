@@ -7,54 +7,29 @@ import (
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type Instance struct {
+	*worker.Worker
 	com common_types.ApplicationCommunicator
 	db  *DB
 	mod *Module
 
-	serveConnectionCB func(
-		to_svc string,
-		who *common_types.Address,
-		conn net.Conn,
-	) error
+	/*
+		serveConnectionCB func(
+			to_svc string,
+			who *common_types.Address,
+			conn net.Conn,
+		) error
+	*/
 
 	tcp_worker  *TCPWorker
 	udp_beacon  *UDPBeacon
 	udp_locator *UDPLocator
 
-	w *common_types.WorkerStatus
-
-	stop_flag bool
-	err       error
-
-	start_stop_mutex *sync.Mutex
-}
-
-func (self *Instance) Start() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
-
-		if self.w.Stopped() {
-			self.stop_flag = false
-			go self.threadWorker()
-		}
-	}()
-}
-
-func (self *Instance) Stop() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
-
-		self.stop_flag = true
-	}()
-}
-
-func (self *Instance) Status() *common_types.WorkerStatus {
-	return self.w
+	window           *UIWindow
+	window_show_sync *sync.Mutex
 }
 
 func (self *Instance) ServeConn(
@@ -87,7 +62,26 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 */
 
 func (self *Instance) ShowUI() error {
-	return errors.New("not implimented")
+	self.window_show_sync.Lock()
+	defer self.window_show_sync.Unlock()
+
+	if self.window == nil {
+		self.window = UIWindowNew(self)
+		self.window.window.Connect("destroy", self._OnWindowDestroy)
+	}
+
+	self.window.Show()
+
+	return nil
+}
+
+func (self *Instance) _OnWindowDestroy() {
+	self.window_show_sync.Lock()
+	defer self.window_show_sync.Unlock()
+
+	if self.window != nil {
+		self.window = nil
+	}
 }
 
 func (self *Instance) Connect(
@@ -101,7 +95,20 @@ func (self *Instance) Connect(
 	return nil, nil
 }
 
-func (self *Instance) threadWorker() {
+func (self *Instance) threadWorker(
+
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
+
+	set_error func(error),
+
+	is_stop_flag func() bool,
+
+	data interface{},
+
+) {
 }
 
 func (self *Instance) AcceptTCP(conn net.Conn, err error) {
@@ -119,4 +126,18 @@ func (self *Instance) IncommingUDPBeaconMessage(
 
 func (self *Instance) UDPBeaconSleepTime() time.Duration {
 	return time.Duration(1 * time.Minute)
+}
+
+func (self *Instance) RequestInstance(calling_svc_name string) (
+	common_types.ApplicationModuleInstance,
+	common_types.ApplicationModule,
+	error,
+) {
+
+	if calling_svc_name == "builtin_net" {
+		return self, self.mod, nil
+	}
+
+	return nil, nil, errors.New("not allowed")
+
 }

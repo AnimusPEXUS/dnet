@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/workerstatus"
 )
 
 type Instance struct {
@@ -13,6 +14,14 @@ type Instance struct {
 	mod *Module
 
 	win *UIWindow
+}
+
+func (self *Instance) Start() {}
+
+func (self *Instance) Stop() {}
+
+func (self *Instance) Status() *workerstatus.WorkerStatus {
+	return &workerstatus.WorkerStatus{}
 }
 
 func (self *Instance) ServeConn(

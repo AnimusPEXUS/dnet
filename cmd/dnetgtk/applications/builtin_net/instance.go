@@ -6,6 +6,7 @@ import (
 
 	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/workerstatus"
 )
 
 type Instance struct {
@@ -13,9 +14,9 @@ type Instance struct {
 	db  *DB
 	mod *Module
 
-	w *common_types.WorkerStatus
+	w *workerstatus.WorkerStatus
 
-	module_instances map[string]common_types.NetworkModuleInstance
+	module_instances map[string]common_types.ApplicationModuleInstance
 }
 
 func (self *Instance) Start() {
@@ -34,8 +35,8 @@ func (self *Instance) Stop() {
 	}()
 }
 
-func (self *Instance) Status() *common_types.WorkerStatus {
-	t := make([]*common_types.WorkerStatus, 0)
+func (self *Instance) Status() *workerstatus.WorkerStatus {
+	t := make([]*workerstatus.WorkerStatus, 0)
 	for _, value := range self.module_instances {
 		t = append(t, value.Status())
 	}

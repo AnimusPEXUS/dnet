@@ -2,82 +2,60 @@ package builtin_net_ip
 
 import (
 	"net"
-	"sync"
 
-	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type TCPWorker struct {
-	w *common_types.WorkerStatus
+	*worker.Worker
 
 	instance *Instance
 
 	listener *net.TCPListener
-
-	stop_flag bool
-	err       error
-
-	start_stop_mutex *sync.Mutex
 }
 
-func TCPWorkerNew(instance *Instance) (*TCPWorker, error) {
+func TCPWorkerNew(instance *Instance) *TCPWorker {
 	ret := new(TCPWorker)
 
+	ret.Worker = worker.New(ret.threadWorker)
+
 	ret.instance = instance
-	ret.w = common_types.NewWorkerStatus()
-	ret.err = nil
 
-	return ret, nil
+	return ret
 }
 
-func (self *TCPWorker) Error() error {
-	return self.err
-}
+func (self *TCPWorker) threadWorker(
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
 
-func (self *TCPWorker) Start() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	set_error func(error),
 
-		if self.w.Stopped() {
-			self.stop_flag = false
-			go self.threadWorker()
-		}
-	}()
-}
+	is_stop_flag func() bool,
 
-func (self *TCPWorker) Stop() {
-	go func() {
-		self.start_stop_mutex.Lock()
-		defer self.start_stop_mutex.Unlock()
+	data interface{},
+) {
 
-		self.stop_flag = true
-	}()
-}
-
-func (self *TCPWorker) threadWorker() {
-
-	defer self.w.Reset()
-
-	self.w.Starting = true
+	set_starting()
+	defer set_stopped()
 
 	laddr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:5555")
 	if err != nil {
-		self.err = err
+		set_error(err)
 		return
 	}
 
-	self.w.Working = true
-	self.w.Starting = false
+	set_working()
 
 	if res, err := net.ListenTCP("tcp", laddr); err != nil {
-		self.err = err
+		set_error(err)
 		return
 	} else {
 		self.listener = res
 	}
 
-	for !self.stop_flag {
+	for !is_stop_flag() {
 		conn, err := self.listener.AcceptTCP()
 		go self.instance.AcceptTCP(conn, err)
 	}
