@@ -6,10 +6,10 @@ import os.path
 import glob
 
 WIDGETS = [
-    './common_windgets/key_cert_editor',
-    './common_windgets/text_viewer',
-    './common_windgets/progress_window',
-    './common_windgets/log_viewer'
+    './common_widgets/key_cert_editor',
+    './common_widgets/text_viewer',
+    './common_widgets/progress_window',
+    './common_widgets/log_viewer'
     ]
 
 MODULES = [

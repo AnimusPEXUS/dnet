@@ -5,7 +5,7 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 	//"github.com/AnimusPEXUS/dnet"
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/log_viewer"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_widgets/log_viewer"
 	//"github.com/AnimusPEXUS/dnet/common_types"
 
 	"github.com/AnimusPEXUS/gologger"

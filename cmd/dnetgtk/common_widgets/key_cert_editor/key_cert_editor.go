@@ -14,8 +14,8 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
-	
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/text_viewer"
+
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_widgets/text_viewer"
 )
 
 type UIKeyCertEditor struct {

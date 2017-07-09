@@ -1,6 +1,6 @@
 package common_types
 
-type ModuleControllerI interface {
+type ApplicationControllerI interface {
 	GetAcceptedModuleNameList() []string
 
 	IsModuleBuiltin(name string) bool
@@ -12,13 +12,13 @@ type ModuleControllerI interface {
 		name *ModuleName,
 		checksum *ModuleChecksum,
 	) error
-	RejectModule(name) error
+	RejectModule(name string) error
 
-	EnableModule(name) error
-	DisableModule(name) error
+	EnableModule(name string) error
+	DisableModule(name string) error
 
-	StartModuleInstance(name) error
-	StopModuleInstance(name) error
+	StartModuleInstance(name string) error
+	StopModuleInstance(name string) error
 
 	GetModule(name string) ApplicationModule
 	GetModuleInstance(name string) ApplicationModuleInstance

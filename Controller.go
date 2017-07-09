@@ -18,18 +18,18 @@ import (
 type Controller struct {
 	*worker.Worker
 
-	module_controller common_types.ModuleController
+	application_controller common_types.ApplicationControllerI
 }
 
-func NewController(module_controller common_types.ModuleController) (
+func NewController(application_controller common_types.ApplicationControllerI) (
 	*Controller,
 	error,
 ) {
-	if module_controller == nil {
-		return nil, errors.New("module_controller must be specified")
+	if application_controller == nil {
+		return nil, errors.New("application_controller must be specified")
 	}
 	ret := new(Controller)
-	ret.module_controller = module_controller
+	ret.application_controller = application_controller
 	return ret, nil
 }
 
@@ -71,7 +71,8 @@ func (self *Controller) ServeConnection(
 		ServerVersion:               "",
 	}
 
-	ssh_conn, new_chan, request, err := ssh.NewServerConn(conn, config)
+	//	ssh_conn, new_chan, request, err := ssh.NewServerConn(conn, config)
+	_, _, _, err := ssh.NewServerConn(conn, config)
 	if err != nil {
 		fmt.Println("error", err)
 	}
@@ -86,7 +87,8 @@ func (self *Controller) _ISSHH_PasswordCallback(
 	*ssh.Permissions,
 	error,
 ) {
-
+	ret := &ssh.Permissions{}
+	return ret, nil
 }
 
 func (self *Controller) _ISSHH_PublicKeyCallback(
@@ -119,21 +121,23 @@ func (self *Controller) _ISSHH_AuthLogCallback(
 	fmt.Println("authentication attempted", conn, method, err)
 }
 
-func (self *Controller) FoundPossibleNode(*common_type.TransportAddress) {
+func (self *Controller) FoundPossibleNode(*common_types.TransportAddress) {
 }
 
 func (self *Controller) ProbeAddress(
+	addr *common_types.TransportAddress,
 	sync bool,
 	callback func(
 		success bool,
-		dnet_address *common_type.Address,
-		transport_address *common_type.TransportAddress,
+		dnet_address *common_types.Address,
+		transport_address *common_types.TransportAddress,
 		arg interface{},
 	),
 	arg interface{},
 ) (
 	bool,
-	*common_type.Address,
-	*common_type.TransportAddress,
+	*common_types.Address,
+	*common_types.TransportAddress,
 ) {
+	return false, nil, nil
 }

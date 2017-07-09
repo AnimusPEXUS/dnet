@@ -65,16 +65,6 @@ type ApplicationModuleInstance interface {
 	Stop()
 	Status() *workerstatus.WorkerStatus
 
-	// for usage via ApplicationCommunicator
-	/* DECLINED: if other app want's to Start/Stop/Status other module - it
-	should ask DNet controller.
-	GetStartStopStatus(calling_app_name string) (
-		func(),
-		func(),
-		func() *workerstatus.WorkerStatus,
-	)
-	*/
-
 	ServeConn(
 		local bool,
 		calling_app_name string, // this is meaningfull only if `local' is true
@@ -98,7 +88,7 @@ type ApplicationModuleInstance interface {
 	// ApplicationModuleInstance, using calling_svc_name, should decide, to
 	// return valid values, or to return nils and error.
 
-	ReturnSelf(calling_app_name string) (
+	GetSelf(calling_app_name string) (
 		ApplicationModuleInstance,
 		ApplicationModule,
 		error,
@@ -106,7 +96,7 @@ type ApplicationModuleInstance interface {
 
 	// should return module's ui of some sort. If module has no window and it's
 	// HaveUI() result's to false, then GetUI() should return non-nil error
-	// stating so. anyway, DNet Implimenting Software should not allow user to 
+	// stating so. anyway, DNet Implimenting Software should not allow user to
 	// call GetUI() if HaveUI() results to false
 	GetUI() interface{}
 }

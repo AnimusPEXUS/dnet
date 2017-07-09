@@ -1,10 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"net"
-
 	"github.com/AnimusPEXUS/dnet"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -24,14 +20,15 @@ type Controller struct {
 
 	dnet_controller *dnet.Controller
 
-	DB          *DB
-	ModSearcher *ModuleSercher
+	db *DB
 
-	application_presets []*ControllerApplicationWrap
+	module_searcher *ModuleSercher
 
 	window_main *UIWindowMain
 
 	builtin_app_modules []common_types.ApplicationModule
+
+	application_controller *ApplicationController
 }
 
 func NewController(username string, key string) (*Controller, error) {
@@ -43,30 +40,24 @@ func NewController(username string, key string) (*Controller, error) {
 		if err != nil {
 			return nil, err
 		}
-		ret.DB = t
+		ret.db = t
 	}
 
-	ret.builtin_app_modules = []common_types.ApplicationModule{
-		&builtin_ownkeypair.Module{},
-		&builtin_owntlscert.Module{},
-		&builtin_net.Module{},
-		&builtin_net_ip.Module{},
-	}
+	ret.builtin_app_modules = make(map[string]common_types.ApplicationModule)
+	ret.builtin_app_modules[builtin_ownkeypair] = new(builtin_ownkeypair.Module)
+	ret.builtin_app_modules[builtin_owntlscert] = new(builtin_owntlscert.Module)
+	ret.builtin_app_modules[builtin_net] = new(builtin_net.Module)
+	ret.builtin_app_modules[builtin_net_ip] = new(builtin_net_ip.Module)
 
-	ret.ModSearcher = ModuleSercherNew(ret.builtin_app_modules)
+	ret.module_searcher = ModuleSercherNew(ret.builtin_app_modules)
 
-	ret.application_presets = make([]*ControllerApplicationWrap, 0)
-
-	/*
-		if cntrlr, err := dnet.NewController(); err != nil {
-			return nil, err
-		} else {
-			ret.dnet_controller = cntrlr
-		}
-	*/
+	ret.application_controller = NewApplicationController(
+		ret.module_searcher,
+		ret.db,
+	)
 
 	// Next line requires modules to be present already
-	ret.RestorePresetsFromStorage()
+	ret.application_controller.RestoreInstances()
 
 	ret.window_main = UIWindowMainNew(ret)
 
@@ -76,149 +67,6 @@ func NewController(username string, key string) (*Controller, error) {
 func (self *Controller) ShowMainWindow() {
 	self.window_main.Show()
 	return
-}
-
-func (self *Controller) isModuleNameBuiltIn(name string) bool {
-	for _, i := range self.builtin_app_modules {
-		if i.Name().Value() == name {
-			return true
-		}
-	}
-	return false
-}
-
-/*
-	Controller should be considered selfsaficient functionality and if
-	passed `builtin' == false (with necessary checksum ofcourse), then
-	Controller shoult perform search manually and retrieve it's name right from
-	the module.
-*/
-func (self *Controller) EnableModule(name string, value bool) error {
-	for _, i := range self.application_presets {
-		if i.Name.Value() == name {
-			stat, err := self.DB.GetApplicationStatus(name)
-			if err != nil {
-				return errors.New("can't get ApplicationStatus for named module")
-			}
-			i.DBStatus.Enabled = value
-			stat.Enabled = value
-			self.DB.SetApplicationStatus(stat)
-			return nil
-		}
-	}
-	return errors.New("so preset with this name")
-}
-
-func (self *Controller) AcceptModule(
-	builtin bool,
-	name *common_types.ModuleName,
-	checksum *common_types.ModuleChecksum,
-) error {
-
-	appstat, err := self.acceptModuleNoSaveToDB(builtin, name, checksum)
-	if err != nil {
-		return err
-	}
-
-	err = self.DB.SetApplicationStatus(appstat)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// this func is for internal uses
-func (self *Controller) acceptModuleNoSaveToDB(
-	builtin bool,
-	name *common_types.ModuleName,
-	checksum *common_types.ModuleChecksum,
-) (
-	*ApplicationStatus,
-	error,
-) {
-
-	if mbdn :=
-		self.isModuleNameBuiltIn(name.Value()); (builtin && !mbdn) ||
-		(!builtin && mbdn) {
-		return nil, errors.New("trying to accept external module as builtin")
-	}
-
-	for _, i := range self.application_presets {
-		if i.Name.Value() == name.Value() {
-			return nil, errors.New("already have preset for module with this name")
-		}
-	}
-
-	wrap, err := ControllerApplicationWrapNew(self, builtin, name, checksum)
-	if err != nil {
-		panic("module wrapping error: " + err.Error())
-	}
-
-	self.application_presets = append(
-		self.application_presets,
-		wrap,
-	)
-
-	return wrap.DBStatus, nil
-
-}
-
-func (self *Controller) RejectModule(name string) {
-	self.DB.DelApplicationStatus(name)
-}
-
-func (self *Controller) RestorePresetsFromStorage() {
-
-	self.application_presets = append(self.application_presets[0:0])
-
-	names := self.DB.ListApplicationStatusNames()
-
-	for _, i := range names {
-		if dbstat, err := self.DB.GetApplicationStatus(i); err == nil {
-
-			name_obj, err := common_types.ModuleNameNew(dbstat.Name)
-			if err != nil {
-				fmt.Println(
-					"rejecting module " + dbstat.Name + " because name invalid",
-				)
-				self.RejectModule(i)
-				continue
-			}
-
-			checksum_obj := (*common_types.ModuleChecksum)(nil)
-			if !dbstat.Builtin {
-				checksum_obj_, err :=
-					common_types.ModuleChecksumNewFromString(dbstat.Checksum)
-				if err != nil {
-					fmt.Println(
-						"rejecting module " + dbstat.Name + " because checksum invalid",
-					)
-					self.RejectModule(i)
-					continue
-				}
-				checksum_obj = checksum_obj_
-			}
-
-			// TODO: error should be tracked
-			self.acceptModuleNoSaveToDB(
-				dbstat.Builtin,
-				name_obj,
-				checksum_obj,
-			)
-
-		} else {
-			self.RejectModule(i)
-		}
-	}
-}
-
-func (self *Controller) ServeConnection(
-	to_svc string,
-	who *common_types.Address,
-	conn net.Conn,
-) error {
-	return errors.New("error")
 }
 
 /*

@@ -6,6 +6,9 @@ import (
 	"errors"
 )
 
+// TODO: remove address from message. only peer address presented by net.Conn
+// shoulde be used
+
 var WRAPPING_MAGICK string = "DNETMAGICK"
 var WRAPPING_MAGICK_B []byte = bytes.NewBufferString(WRAPPING_MAGICK).Bytes()
 

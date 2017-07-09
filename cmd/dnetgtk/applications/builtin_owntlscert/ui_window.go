@@ -14,7 +14,7 @@ import (
 	// "github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
 
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_windgets/key_cert_editor"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_widgets/key_cert_editor"
 )
 
 type UIWindow struct {
