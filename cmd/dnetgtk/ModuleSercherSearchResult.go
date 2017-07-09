@@ -8,7 +8,7 @@ import (
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
-type ModuleSercherResult struct {
+type ModuleSercherSearchResult struct {
 	parent_searcher *ModuleSercher
 	name            *common_types.ModuleName
 	builtin         bool
@@ -20,19 +20,19 @@ type ModuleSercherResult struct {
 	Note: Name() returns valid value, only if .builtin == true.
 				If .builtin == false, You have to use .Mod().Name()
 */
-func (self *ModuleSercherResult) Name() *common_types.ModuleName {
+func (self *ModuleSercherSearchResult) Name() *common_types.ModuleName {
 	return self.name
 }
 
-func (self *ModuleSercherResult) Builtin() bool {
+func (self *ModuleSercherSearchResult) Builtin() bool {
 	return self.builtin
 }
 
-func (self *ModuleSercherResult) Path() string {
+func (self *ModuleSercherSearchResult) Path() string {
 	return self.path
 }
 
-func (self *ModuleSercherResult) Checksum() string {
+func (self *ModuleSercherSearchResult) Checksum() string {
 	return self.checksum
 }
 
@@ -40,7 +40,7 @@ func (self *ModuleSercherResult) Checksum() string {
  Warning: Using .Mod() if .builtin == false, presumes checking .path's
  checksum consistency and opening it as go plugin, so use with caution!
 */
-func (self *ModuleSercherResult) Mod() (
+func (self *ModuleSercherSearchResult) Mod() (
 	common_types.ApplicationModule,
 	error,
 ) {

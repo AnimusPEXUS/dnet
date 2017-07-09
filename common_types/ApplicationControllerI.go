@@ -25,4 +25,6 @@ type ApplicationControllerI interface {
 
 	SaveInstances() error
 	RestoreInstances() error
+
+	ShowUI(module_name ModuleName) error
 }

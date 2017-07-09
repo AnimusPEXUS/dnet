@@ -4,12 +4,15 @@ import (
 	//"fmt"
 	"sync"
 
-	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/worker"
+
+	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
-var MULTICAST_ADDRESS = "224.0.0.1:5555"
-var DESIGNATED_PORT = 5555
+var (
+	MULTICAST_ADDRESS = "224.0.0.1:5555"
+	DESIGNATED_PORT   = 5555
+)
 
 type Module struct {
 	name *common_types.ModuleName
@@ -41,6 +44,10 @@ func (self *Module) DependsOn() []string {
 
 func (self *Module) IsWorker() bool {
 	return true
+}
+
+func (self *Module) IsNetwork() bool {
+	return false
 }
 
 func (self *Module) HaveUI() bool {

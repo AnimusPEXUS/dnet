@@ -84,13 +84,6 @@ func UIWindowNew(inst *Instance) (*UIWindow, error) {
 		r.SetHExpand(true)
 	}
 
-	ret.window.Connect(
-		"destroy",
-		func() {
-			ret.inst.win = nil
-		},
-	)
-
 	ret.button_generate_own_key_pair.Connect(
 		"clicked",
 		func() {

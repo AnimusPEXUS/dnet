@@ -38,6 +38,10 @@ func (self *Module) IsWorker() bool {
 	return false
 }
 
+func (self *Module) IsNetwork() bool {
+	return false
+}
+
 func (self *Module) HaveUI() bool {
 	return true
 }

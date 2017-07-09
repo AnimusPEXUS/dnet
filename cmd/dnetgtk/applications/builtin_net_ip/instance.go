@@ -46,42 +46,37 @@ func (self *Instance) ServeConn(
 	return nil
 }
 
-/*
-func (self *Instance) RequestInstance(local_svc_name string) (
-	common_types.ApplicationModuleInstance,
-	common_types.ApplicationModule,
-	error,
-) {
-	for _, i := range []string{"builtin_owntlscert"} {
-		if local_svc_name == i {
-			return self, self.mod, nil
-		}
+func (self *Instance) GetServeConn(calling_app_name string) func(
+	bool,
+	string,
+	string,
+	*common_types.Address,
+	net.Conn,
+) error {
+	if calling_app_name != "builtin_net" {
+		return nil
 	}
-	return nil, nil, errors.New("access denied")
+	return self.ServeConn
 }
-*/
 
-func (self *Instance) ShowUI() error {
+func (self *Instance) GetUI() (interface{}, error) {
 	self.window_show_sync.Lock()
 	defer self.window_show_sync.Unlock()
 
 	if self.window == nil {
 		self.window = UIWindowNew(self)
-		self.window.window.Connect("destroy", self._OnWindowDestroy)
+		self.window.window.Connect(
+			"destroy",
+			func() {
+				self.window_show_sync.Lock()
+				defer self.window_show_sync.Unlock()
+
+				self.window = nil
+			},
+		)
 	}
 
-	self.window.Show()
-
-	return nil
-}
-
-func (self *Instance) _OnWindowDestroy() {
-	self.window_show_sync.Lock()
-	defer self.window_show_sync.Unlock()
-
-	if self.window != nil {
-		self.window = nil
-	}
+	return self.window, nil
 }
 
 func (self *Instance) Connect(
@@ -115,6 +110,10 @@ func (self *Instance) AcceptTCP(conn net.Conn, err error) {
 
 }
 
+func (self *Instance) IsNetwork() bool {
+	return false
+}
+
 func (self *Instance) UDPBeaconMessage() string {
 	return "test" // TODO
 }
@@ -128,7 +127,7 @@ func (self *Instance) UDPBeaconSleepTime() time.Duration {
 	return time.Duration(1 * time.Minute)
 }
 
-func (self *Instance) RequestInstance(calling_svc_name string) (
+func (self *Instance) GetSelf(calling_svc_name string) (
 	common_types.ApplicationModuleInstance,
 	common_types.ApplicationModule,
 	error,

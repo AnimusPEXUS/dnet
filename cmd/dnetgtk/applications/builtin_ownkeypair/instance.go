@@ -3,6 +3,7 @@ package builtin_ownkeypair
 import (
 	"errors"
 	"net"
+	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/workerstatus"
@@ -13,7 +14,9 @@ type Instance struct {
 	db  *DB
 	mod *Module
 
-	win *UIWindow
+	window *UIWindow
+
+	window_show_sync *sync.Mutex
 }
 
 func (self *Instance) Start() {}
@@ -38,7 +41,20 @@ func (self *Instance) ServeConn(
 	return nil
 }
 
-func (self *Instance) RequestInstance(local_svc_name string) (
+func (self *Instance) GetServeConn(calling_app_name string) func(
+	bool,
+	string,
+	string,
+	*common_types.Address,
+	net.Conn,
+) error {
+	if calling_app_name != "localDNet" {
+		return nil
+	}
+	return self.ServeConn
+}
+
+func (self *Instance) GetSelf(local_svc_name string) (
 	common_types.ApplicationModuleInstance,
 	common_types.ApplicationModule,
 	error,
@@ -51,16 +67,29 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 	return nil, nil, errors.New("access denied")
 }
 
-func (self *Instance) ShowUI() error {
-	if self.win == nil {
-		w, err := UIWindowNew(self)
+func (self *Instance) GetUI() (interface{}, error) {
+	self.window_show_sync.Lock()
+	defer self.window_show_sync.Unlock()
+
+	var err error
+
+	if self.window == nil {
+		self.window, err = UIWindowNew(self)
 		if err != nil {
-			return err
+			return nil, errors.New("Error creating window for builtin_ownkeypair module")
 		}
-		self.win = w
+		self.window.window.Connect(
+			"destroy",
+			func() {
+				self.window_show_sync.Lock()
+				defer self.window_show_sync.Unlock()
+
+				self.window = nil
+			},
+		)
 	}
-	self.win.window.ShowAll()
-	return nil
+
+	return self.window, nil
 }
 
 func (self *Instance) GetOwnPrivKey() (string, error) {

@@ -28,15 +28,14 @@ func NewApplicationController(
 	*ApplicationController,
 	error,
 ) {
-	ret := new(ModuleController)
+	ret := new(ApplicationController)
 	//ret.builtin_modules = builtin_modules
 	ret.module_searcher = module_searcher
 	ret.db = db
 	return ret, nil
 }
 
-func (self *ApplicationController) GetInstances()
-map[string]common_types.ApplicationModuleInstance {
+func (self *ApplicationController) GetInstances() map[string]common_types.ApplicationModuleInstance {
 	return self.module_instances
 }
 
@@ -139,8 +138,6 @@ func (self *ApplicationController) isModuleNameBuiltIn(name string) bool {
 	}
 	return false
 }
-
-
 
 func (self *ApplicationController) StopModuleInstance(name) error {
 }

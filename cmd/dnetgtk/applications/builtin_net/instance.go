@@ -62,8 +62,8 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 	return nil, nil, errors.New("any access is denied to this module")
 }
 
-func (self *Instance) ShowUI() error {
-	return errors.New("not implimented")
+func (self *Instance) GetUI() (interface{}, error) {
+	return nil, errors.New("not implimented")
 }
 
 func (self *Instance) Connect(
@@ -75,4 +75,29 @@ func (self *Instance) Connect(
 	error,
 ) {
 	return nil, nil
+}
+
+func (self *Instance) GetSelf(calling_app_name string) (
+	common_types.ApplicationModuleInstance,
+	common_types.ApplicationModule,
+	error,
+) {
+	if calling_app_name == "localDNet" {
+		return self, self.mod, nil
+	}
+
+	return nil, nil, errors.New("not allowed")
+}
+
+func (self *Instance) GetServeConn(calling_app_name string) func(
+	local bool,
+	calling_app_name string,
+	to_svc string,
+	who *common_types.Address,
+	conn net.Conn,
+) error {
+	if calling_app_name != "localDNet" {
+		return nil
+	}
+	return self.ServeConn
 }

@@ -15,6 +15,11 @@ import (
 	"github.com/AnimusPEXUS/worker"
 )
 
+// This is for cases when DNet (as a Controller), whises to access module
+// instance or theyr some other parts. In this case, DNet controller will be
+// presented as DNET_UNIVERSAL_APPLICATION_NAME
+const DNET_UNIVERSAL_APPLICATION_NAME = "localDNet"
+
 type Controller struct {
 	*worker.Worker
 

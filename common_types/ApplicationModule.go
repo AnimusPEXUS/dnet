@@ -47,9 +47,8 @@ type ApplicationModule interface {
 	// DNet uses  Key and ReKey sqlcipher's commands by it's own means and only
 	// DNet should know and only DNet may change DB keyphrase. Application shold
 	// work with db as with regular GORM sqlite3 connection, except Application
-	// should not perform closing of DB. otherwise DB misconsistencies may
-	// happen, leading to database reinitialization or inconsistency (behavior
-	// is not specified).
+	// should not perform closing of DB. otherwise DB misconsistencies may happen,
+	// leading to database reinitialization or other unspecified behavior.
 
 	// DNet will automatically do ReKey command to DB over some time intervals.
 	// presumably 30 days.
@@ -75,11 +74,7 @@ type ApplicationModuleInstance interface {
 
 	// for usage via ApplicationCommunicator
 	GetServeConn(calling_app_name string) func(
-		local bool,
-		calling_app_name string,
-		to_svc string,
-		who *Address,
-		conn net.Conn,
+		bool, string, string, *Address, net.Conn,
 	) error
 
 	// this method may be called only by local services.
@@ -98,5 +93,5 @@ type ApplicationModuleInstance interface {
 	// HaveUI() result's to false, then GetUI() should return non-nil error
 	// stating so. anyway, DNet Implimenting Software should not allow user to
 	// call GetUI() if HaveUI() results to false
-	GetUI() interface{}
+	GetUI() (interface{}, error)
 }
