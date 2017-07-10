@@ -22,7 +22,7 @@ type Controller struct {
 
 	db *DB
 
-	module_searcher *ModuleSercher
+	module_searcher *ModuleSearcher
 
 	window_main *UIWindowMain
 

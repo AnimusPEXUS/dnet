@@ -8,30 +8,31 @@ import (
 )
 
 type ApplicationController struct {
-	//builtin_modules map[string]common_types.ApplicationModule
-
-	//external_modules map[string]common_types.ApplicationModule
-
-	application_instances map[string]ControllerApplicationWrap
-
-	module_searcher *ModuleSercher
-
 	db *DB
 
-	//application_presets []*ControllerApplicationWrap
+	// Builtin modules map shoud be got via module_searcher
+	module_searcher *ModuleSearcher
+
+	// External modules should be re-searched each time then they needed.
+
+	// One wrapper contains both Preset and Instance. Instance is made with Preset
+	// if Preset.Enabled value is true.
+	application_wrappers map[string]ControllerApplicationWrap
 }
 
 func NewApplicationController(
-	module_searcher *ModuleSercher,
+	module_searcher *ModuleSearcher,
 	db *DB,
 ) (
 	*ApplicationController,
 	error,
 ) {
 	ret := new(ApplicationController)
-	//ret.builtin_modules = builtin_modules
-	ret.module_searcher = module_searcher
+
 	ret.db = db
+	ret.module_searcher = module_searcher
+	ret.application_wrappers = make(map[string]ControllerApplicationWrap)
+
 	return ret, nil
 }
 
@@ -56,7 +57,7 @@ func (self *ApplicationController) SearchModules(
 	name *common_types.ModuleName,
 	checksum *common_types.ModuleChecksum,
 ) (
-	*ModuleSercherSearchResult,
+	*ModuleSearcherSearchResult,
 	error,
 ) {
 	return self.module_searcher.SearchMod(builtin, name, checksum)
@@ -118,16 +119,10 @@ func (self *ApplicationController) AcceptModuleNoSaveToDB(
 
 }
 
-func (self *ApplicationController) RejectModule(name) error {
+func (self *ApplicationController) RejectModule(name string) error {
 }
 
-func (self *ApplicationController) EnableModule(name) error {
-}
-
-func (self *ApplicationController) DisableModule(name) error {
-}
-
-func (self *ApplicationController) StartModuleInstance(name) error {
+func (self *ApplicationController) StartModuleInstance(name string) error {
 }
 
 func (self *ApplicationController) isModuleNameBuiltIn(name string) bool {
@@ -139,7 +134,7 @@ func (self *ApplicationController) isModuleNameBuiltIn(name string) bool {
 	return false
 }
 
-func (self *ApplicationController) StopModuleInstance(name) error {
+func (self *ApplicationController) StopModuleInstance(name string) error {
 }
 
 func (self *ApplicationController) GetModule(name string) (
@@ -150,20 +145,26 @@ func (self *ApplicationController) GetModule(name string) (
 
 func (self *ApplicationController) GetModuleInstance(
 	name string,
-) ApplicationModuleInstance {
+) common_types.ApplicationModuleInstance {
+
 }
 
-func (self *ApplicationController) SaveInstances() error {
+func (self *ApplicationController) Save() error {
 }
 
-func (self *ApplicationController) RestoreInstances() error {
+func (self *ApplicationController) Load() error {
 
-	self.application_presets = append(self.application_presets[0:0])
+	for key, _ := range ret.application_wrappers {
+		delete(ret.application_wrappers, key)
+	}
 
-	names := self.DB.ListApplicationStatusNames()
+	for _, i := range self.DB.ListApplicationStatusNames() {
 
-	for _, i := range names {
-		if dbstat, err := self.DB.GetApplicationStatus(i); err == nil {
+		if dbstat, err := self.DB.GetApplicationStatus(i); err != nil {
+
+			self.RejectModule(i)
+
+		} else {
 
 			name_obj, err := common_types.ModuleNameNew(dbstat.Name)
 			if err != nil {
@@ -180,7 +181,7 @@ func (self *ApplicationController) RestoreInstances() error {
 					common_types.ModuleChecksumNewFromString(dbstat.Checksum)
 				if err != nil {
 					fmt.Println(
-						"rejecting module " + dbstat.Name + " because checksum invalid",
+						"rejecting module", dbstat.Name, "because checksum invalid",
 					)
 					self.RejectModule(i)
 					continue
@@ -189,14 +190,12 @@ func (self *ApplicationController) RestoreInstances() error {
 			}
 
 			// TODO: error should be tracked
-			self.acceptModuleNoSaveToDB(
+			self.AcceptModuleNoSaveToDB(
 				dbstat.Builtin,
 				name_obj,
 				checksum_obj,
 			)
 
-		} else {
-			self.RejectModule(i)
 		}
 	}
 }
@@ -221,6 +220,9 @@ func (self *ApplicationController) EnableModule(name string, value bool) error {
 		}
 	}
 	return errors.New("so preset with this name")
+}
+
+func (self *ApplicationController) DisableModule(name string) error {
 }
 
 func (self *Controller) RejectModule(name string) {

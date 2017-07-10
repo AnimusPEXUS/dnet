@@ -8,8 +8,8 @@ import (
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
-type ModuleSercherSearchResult struct {
-	parent_searcher *ModuleSercher
+type ModuleSearcherSearchResult struct {
+	parent_searcher *ModuleSearcher
 	name            *common_types.ModuleName
 	builtin         bool
 	path            string
@@ -20,19 +20,19 @@ type ModuleSercherSearchResult struct {
 	Note: Name() returns valid value, only if .builtin == true.
 				If .builtin == false, You have to use .Mod().Name()
 */
-func (self *ModuleSercherSearchResult) Name() *common_types.ModuleName {
+func (self *ModuleSearcherSearchResult) Name() *common_types.ModuleName {
 	return self.name
 }
 
-func (self *ModuleSercherSearchResult) Builtin() bool {
+func (self *ModuleSearcherSearchResult) Builtin() bool {
 	return self.builtin
 }
 
-func (self *ModuleSercherSearchResult) Path() string {
+func (self *ModuleSearcherSearchResult) Path() string {
 	return self.path
 }
 
-func (self *ModuleSercherSearchResult) Checksum() string {
+func (self *ModuleSearcherSearchResult) Checksum() string {
 	return self.checksum
 }
 
@@ -40,7 +40,7 @@ func (self *ModuleSercherSearchResult) Checksum() string {
  Warning: Using .Mod() if .builtin == false, presumes checking .path's
  checksum consistency and opening it as go plugin, so use with caution!
 */
-func (self *ModuleSercherSearchResult) Mod() (
+func (self *ModuleSearcherSearchResult) Mod() (
 	common_types.ApplicationModule,
 	error,
 ) {
@@ -62,7 +62,7 @@ func (self *ModuleSercherSearchResult) Mod() (
 				),
 			)
 		}
-		symb, err := plug.Lookup("ModuleReturner")
+		symb, err := plug.Lookup("GttDNetGtkModule")
 		if err != nil {
 			return nil, errors.New(
 				fmt.Sprintf(

@@ -23,8 +23,8 @@ type ApplicationControllerI interface {
 	GetModule(name string) ApplicationModule
 	GetModuleInstance(name string) ApplicationModuleInstance
 
-	SaveInstances() error
-	RestoreInstances() error
+	Save() error
+	Load() error
 
 	ShowUI(module_name ModuleName) error
 }

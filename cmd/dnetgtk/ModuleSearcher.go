@@ -6,25 +6,25 @@ import (
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
-type ModuleSercher struct {
+type ModuleSearcher struct {
 	builtin []common_types.ApplicationModule
 }
 
-func ModuleSercherNew(
-	builtin []common_types.ApplicationModule,
-) *ModuleSercher {
+func ModuleSearcherNew(
+	map[string]common_types.ApplicationModule,
+) *ModuleSearcher {
 	ret := new(ModuleSercher)
 	ret.builtin = builtin
 	return ret
 }
 
-func (self *ModuleSercher) ListModules() []*ModuleSercherSearchResult {
+func (self *ModuleSearcher) ListModules() []*ModuleSearcherSearchResult {
 	ret := make([]*ModuleSercherSearchResult, 0)
 
 	for _, i := range self.builtin {
 		ret = append(
 			ret,
-			&ModuleSercherSearchResult{
+			&ModuleSearcherSearchResult{
 				parent_searcher: self,
 				name:            i.Name(),
 				builtin:         true,
@@ -40,7 +40,7 @@ func (self *ModuleSercher) ListModules() []*ModuleSercherSearchResult {
 // Depending on builtin value,  GetMod() will use eather name or checksum
 // NOTE: the type of checksum may change in the future, fo instance, to better
 // describe checksum method desired
-func (self *ModuleSercher) GetMod(
+func (self *ModuleSearcher) GetMod(
 	builtin bool,
 	name *common_types.ModuleName,
 	checksum *common_types.ModuleChecksum,
@@ -62,12 +62,12 @@ func (self *ModuleSercher) GetMod(
 	return res2, nil
 }
 
-func (self *ModuleSercher) SearchMod(
+func (self *ModuleSearcher) SearchMod(
 	builtin bool,
 	name *common_types.ModuleName,
 	checksum *common_types.ModuleChecksum,
 ) (
-	*ModuleSercherSearchResult,
+	*ModuleSearcherSearchResult,
 	error,
 ) {
 

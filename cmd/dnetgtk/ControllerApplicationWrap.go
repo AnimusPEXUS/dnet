@@ -8,12 +8,14 @@ import (
 
 // Wrap is for DNet's safety. So, for instance, App could not change .Name()
 // output at runtime
+
+//
 type ControllerApplicationWrap struct {
 	controller *Controller
 	Name       *common_types.ModuleName
 	Module     common_types.ApplicationModule
-	Instance   common_types.ApplicationModuleInstance
 	DBStatus   *ApplicationStatus
+	Instance   common_types.ApplicationModuleInstance
 }
 
 func ControllerApplicationWrapNew(

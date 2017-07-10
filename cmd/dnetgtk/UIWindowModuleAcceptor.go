@@ -14,7 +14,7 @@ type UIWindowModuleAcceptor struct {
 	name     *common_types.ModuleName     // for builtin
 	checksum *common_types.ModuleChecksum // for external
 
-	last_search_result *ModuleSercherSearchResult
+	last_search_result *ModuleSearcherSearchResult
 
 	main_window *UIWindowMain
 
