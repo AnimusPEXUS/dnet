@@ -145,10 +145,11 @@ func UIWindowModuleAcceptorNew(
 	ret.button_accept_module.Connect(
 		"clicked",
 		func() {
-			err := ret.main_window.controller.AcceptModule(
+			err := ret.main_window.controller.application_controller.AcceptModule(
 				ret.builtin,
 				ret.name,
 				ret.checksum,
+				true,
 			)
 			ret.window.Close()
 			if err != nil {
@@ -185,7 +186,8 @@ func (self *UIWindowModuleAcceptor) Show() {
 }
 
 func (self *UIWindowModuleAcceptor) ReSearchModuleFile() {
-	search_res, err := self.main_window.controller.ModSearcher.SearchMod(
+	search_res, err := self.main_window.controller.application_controller.
+		module_searcher.SearchMod(
 		self.builtin,
 		self.name,
 		self.checksum,

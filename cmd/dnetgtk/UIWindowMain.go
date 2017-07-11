@@ -86,11 +86,16 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 
 	{
 		t0, _ := builder.GetObject("box_for_log")
-		t1, _ := t0.(*gtk.ToggleButton)
+		t1, _ := t0.(*gtk.Box)
 		ret.box_for_log = t1
 	}
 
-	ret.box_for_log.add(log_viewer.UILogViewerNew(self.log).GetWidget())
+	ret.box_for_log.PackEnd(
+		log_viewer.UILogViewerNew(ret.controller.logger).GetRoot(),
+		true,
+		true,
+		0,
+	)
 
 	ret.button_online.Connect(
 		"toggled",

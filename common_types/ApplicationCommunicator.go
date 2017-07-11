@@ -30,10 +30,9 @@ type ApplicationCommunicator interface {
 	)
 
 	// this is excucively for builtin_net module. no any other module should
-	// be able to call it. this should call controller's incaomming connections
+	// be able to call it. this should call controller's incomming connections
 	// handeling function
 	ServeConnection(
-		to_service string,
 		who *Address,
 		conn net.Conn,
 	) error

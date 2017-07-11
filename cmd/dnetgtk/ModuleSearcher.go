@@ -11,9 +11,9 @@ type ModuleSearcher struct {
 }
 
 func ModuleSearcherNew(
-	map[string]common_types.ApplicationModule,
+	builtin common_types.ApplicationModuleMap,
 ) *ModuleSearcher {
-	ret := new(ModuleSercher)
+	ret := new(ModuleSearcher)
 	ret.builtin = builtin
 	return ret
 }
@@ -23,7 +23,7 @@ func ModuleSearcherNew(
 //}
 
 func (self *ModuleSearcher) ListModules() []*ModuleSearcherSearchResult {
-	ret := make([]*ModuleSercherSearchResult, 0)
+	ret := make([]*ModuleSearcherSearchResult, 0)
 
 	for _, i := range self.builtin {
 		ret = append(

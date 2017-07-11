@@ -1,8 +1,12 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/AnimusPEXUS/dnet"
 	"github.com/AnimusPEXUS/dnet/common_types"
+
+	"github.com/AnimusPEXUS/gologger"
 
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
@@ -28,11 +32,14 @@ type Controller struct {
 	//builtin_modules
 
 	application_controller *ApplicationController
+
+	logger *gologger.Logger
 }
 
 func NewController(username string, key string) (*Controller, error) {
 
 	ret := new(Controller)
+	ret.logger = gologger.New()
 
 	{
 		t, err := NewDB(username, key)
@@ -44,18 +51,24 @@ func NewController(username string, key string) (*Controller, error) {
 
 	builtin_modules := make(common_types.ApplicationModuleMap)
 
-	builtin_modules[builtin_ownkeypair] = new(builtin_ownkeypair.Module)
-	builtin_modules[builtin_owntlscert] = new(builtin_owntlscert.Module)
-	// builtin_modules[builtin_ownsshcert] = new(builtin_ownsshcert.Module)
-	builtin_modules[builtin_net] = new(builtin_net.Module)
-	builtin_modules[builtin_net_ip] = new(builtin_net_ip.Module)
+	builtin_modules["builtin_ownkeypair"] = new(builtin_ownkeypair.Module)
+	builtin_modules["builtin_owntlscert"] = new(builtin_owntlscert.Module)
+	// builtin_modules["builtin_ownsshcert"] = new(builtin_ownsshcert.Module)
+	builtin_modules["builtin_net"] = new(builtin_net.Module)
+	builtin_modules["builtin_net_ip"] = new(builtin_net_ip.Module)
 
-	ret.module_searcher = ModuleSercherNew(builtin_modules)
+	ret.module_searcher = ModuleSearcherNew(builtin_modules)
 
-	ret.application_controller = NewApplicationController(
+	if ac, err := NewApplicationController(
+		ret,
 		ret.module_searcher,
 		ret.db,
-	)
+	); err != nil {
+		return nil,
+			errors.New("could not create new ApplicationController " + err.Error())
+	} else {
+		ret.application_controller = ac
+	}
 
 	// Next line requires modules to be present already
 	ret.application_controller.Load()

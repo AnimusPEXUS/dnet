@@ -57,7 +57,7 @@ func (self *ApplicationController) GetImportedModules() common_types.Application
 	ret := make(common_types.ApplicationModuleMap)
 search:
 	for key, val := range self.application_wrappers {
-		for key2, val2 := range builtins {
+		for key2, _ := range builtins {
 			if key == key2 {
 				continue search
 			}
@@ -280,7 +280,7 @@ func (self *ApplicationController) Load() error {
 func (self *ApplicationController) GetModuleEnabled(
 	name *common_types.ModuleName,
 ) (bool, error) {
-	for key, val := range self.application_wrappers {
+	for key, _ := range self.application_wrappers {
 		if key == name.Value() {
 
 			stat, err := self.db.GetApplicationStatus(key)
@@ -317,12 +317,17 @@ func (self *ApplicationController) SetModuleEnabled(
 			if stat.Enabled {
 
 				cc := &ControllerCommunicatorForApp{
+					name:       name,
 					controller: self.controller,
 					wrap:       val,
-					db:         self.db,
+					db:         self.db.db,
 				}
 
-				val.Instance = val.Module.Instance(cc)
+				if ins, err := val.Module.Instance(cc); err != nil {
+					return errors.New("Error instantiating module " + name.Value())
+				} else {
+					val.Instance = ins
+				}
 			} else {
 				// TODO: possibly Instance have to have Destroy method. clear this out
 				// val.Instance.Destroy()

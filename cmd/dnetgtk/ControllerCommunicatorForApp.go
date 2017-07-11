@@ -11,6 +11,7 @@ import (
 )
 
 type ControllerCommunicatorForApp struct {
+	name       *common_types.ModuleName
 	controller *Controller
 	wrap       *SafeApplicationModuleInstanceWrap
 	db         *gorm.DB // DB access
@@ -50,7 +51,7 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 		}
 	*/
 
-	caller_name := self.wrap.Name.Value()
+	caller_name := self.name.Value()
 
 	/*
 		fmt.Printf(
@@ -60,10 +61,14 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 		)
 	*/
 
-	for _, i := range self.controller.application_presets {
-		if i.Name.Value() == name {
+	for key, val := range self.controller.application_controller.application_wrappers {
+		if key == name {
 			//	fmt.Println("  success")
-			return i.Instance.RequestInstance(caller_name)
+			if val.Instance == nil {
+				return nil, nil, errors.New("not instantiated")
+			}
+
+			return val.Instance.GetSelf(caller_name)
 		}
 	}
 	//fmt.Println("  failure")
@@ -71,12 +76,11 @@ func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
 }
 
 func (self *ControllerCommunicatorForApp) ServeConnection(
-	to_service string,
 	who *common_types.Address,
 	conn net.Conn,
 ) error {
 
-	caller_name := self.wrap.Name.Value()
+	caller_name := self.name.Value()
 
 	if caller_name != "builtin_net" {
 		fmt.Printf(
@@ -87,5 +91,7 @@ func (self *ControllerCommunicatorForApp) ServeConnection(
 		return errors.New("only `builtin_net' module may access this method")
 	}
 
-	return self.controller.ServeConnection(to_service, who, conn)
+	self.controller.dnet_controller.ServeConnection(who, conn)
+
+	return nil
 }

@@ -233,21 +233,32 @@ func UIWindowMainTabApplicationsNew(
 				}
 			}
 
-			for _, i := range ret.main_window.controller.application_presets {
+			for key, _ := range ret.main_window.controller.
+				application_controller.application_wrappers {
+				key_obj, err := common_types.ModuleNameNew(key)
+				if err != nil {
+					panic("programming error")
+				}
+				stat, err := ret.main_window.controller.
+					application_controller.GetModuleStatus(key_obj)
+				if err != nil {
+					panic("programming error")
+				}
+
 				iter := mdl.Append()
 				cs := "N/A"
-				if !i.DBStatus.Builtin {
-					cs = i.DBStatus.Checksum
+				if !stat.Builtin {
+					cs = stat.Checksum
 				}
 				mdl.Set(
 					iter,
 					[]int{0, 1, 2, 3, 4},
 					[]interface{}{
-						i.Name.Value(),
-						i.DBStatus.Builtin,
-						i.DBStatus.Enabled,
+						key_obj.Value(),
+						stat.Builtin,
+						stat.Enabled,
 						cs,
-						i.DBStatus.LastDBReKey.String(),
+						stat.LastDBReKey.String(),
 					},
 				)
 			}
@@ -271,7 +282,8 @@ func UIWindowMainTabApplicationsNew(
 				}
 			}
 
-			res := ret.main_window.controller.ModSearcher.ListModules()
+			res := ret.main_window.controller.application_controller.
+				module_searcher.ListModules()
 
 			for _, i := range res {
 				if i.builtin {
@@ -382,7 +394,15 @@ func UIWindowMainTabApplicationsNew(
 		func() {
 			value, ok := ret.GetSelectedPresetName()
 			if ok {
-				ret.main_window.controller.EnableModule(value, true)
+				value_obj, err := common_types.ModuleNameNew(value)
+				if err != nil {
+					panic("programming error")
+				}
+				ret.main_window.controller.application_controller.SetModuleEnabled(
+					value_obj,
+					true,
+					true,
+				)
 			}
 		},
 	)
@@ -392,7 +412,15 @@ func UIWindowMainTabApplicationsNew(
 		func() {
 			value, ok := ret.GetSelectedPresetName()
 			if ok {
-				ret.main_window.controller.EnableModule(value, false)
+				value_obj, err := common_types.ModuleNameNew(value)
+				if err != nil {
+					panic("programming error")
+				}
+				ret.main_window.controller.application_controller.SetModuleEnabled(
+					value_obj,
+					false,
+					true,
+				)
 			}
 		},
 	)
@@ -400,30 +428,32 @@ func UIWindowMainTabApplicationsNew(
 	ret.button_open_window_application_preset.Connect(
 		"clicked",
 		func() {
-			value, ok := ret.GetSelectedPresetName()
-			if ok {
+			/*
+				value, ok := ret.GetSelectedPresetName()
+				if ok {
 
-				for _, i := range ret.main_window.controller.application_presets {
-					if i.Name.Value() == value {
-						if i.Module.HaveUI() {
-							err := i.Instance.ShowUI()
-							if err != nil {
-								d := gtk.MessageDialogNew(
-									ret.main_window.win,
-									0,
-									gtk.MESSAGE_ERROR,
-									gtk.BUTTONS_OK,
-									"Trying to show window resulted in error: "+err.Error(),
-								)
-								d.Run()
-								d.Destroy()
+					for key, val := range ret.main_window.controller.application_controller.application_wrappers {
+						if i.Name.Value() == value {
+							if i.Module.HaveUI() {
+								err := i.Instance.ShowUI()
+								if err != nil {
+									d := gtk.MessageDialogNew(
+										ret.main_window.win,
+										0,
+										gtk.MESSAGE_ERROR,
+										gtk.BUTTONS_OK,
+										"Trying to show window resulted in error: "+err.Error(),
+									)
+									d.Run()
+									d.Destroy()
 
+								}
 							}
+							break
 						}
-						break
 					}
 				}
-			}
+			*/
 		},
 	)
 
