@@ -7,6 +7,11 @@ import (
 	"github.com/AnimusPEXUS/workerstatus"
 )
 
+type (
+	ApplicationModuleMap         map[string]ApplicationModule
+	ApplicationModuleInstanceMap map[string]ApplicationModuleInstance
+)
+
 func IsApplicationNameCorrect(text string) bool {
 	if ok, err :=
 		regexp.Match(`^[a-z][a-z0-9_\-]*$`, []byte(text)); err != nil {

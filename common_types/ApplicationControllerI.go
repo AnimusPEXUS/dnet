@@ -1,30 +1,15 @@
 package common_types
 
 type ApplicationControllerI interface {
-	GetAcceptedModuleNameList() []string
+	GetBuiltinModules() []ApplicationModule
+	GetImportedModules() []ApplicationModule
+	GetModuleInstances() []ApplicationModuleInstance
 
-	IsModuleBuiltin(name string) bool
-	IsModuleAccepted(name string) bool
+	IsModuleExists(name *ModuleName) bool
+	IsModuleBuiltin(name *ModuleName) bool
+	GetModule(name *ModuleName) ApplicationModule
 
-	SearchModules()
-	AcceptModule(
-		builtin bool,
-		name *ModuleName,
-		checksum *ModuleChecksum,
-	) error
-	RejectModule(name string) error
-
-	EnableModule(name string) error
-	DisableModule(name string) error
-
-	StartModuleInstance(name string) error
-	StopModuleInstance(name string) error
-
-	GetModule(name string) ApplicationModule
-	GetModuleInstance(name string) ApplicationModuleInstance
-
-	Save() error
-	Load() error
-
-	ShowUI(module_name ModuleName) error
+	IsInstanceExists(name *ModuleName) bool
+	IsInstanceBuiltin(name *ModuleName) bool
+	GetInstance(name *ModuleName) ApplicationModuleInstance
 }

@@ -12,7 +12,7 @@ import (
 
 type ControllerCommunicatorForApp struct {
 	controller *Controller
-	wrap       *ControllerApplicationWrap
+	wrap       *SafeApplicationModuleInstanceWrap
 	db         *gorm.DB // DB access
 }
 

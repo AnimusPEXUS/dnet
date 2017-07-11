@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/AnimusPEXUS/dnet"
-
 	"github.com/AnimusPEXUS/dnet/common_types"
 
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net"
@@ -26,7 +25,7 @@ type Controller struct {
 
 	window_main *UIWindowMain
 
-	builtin_app_modules []common_types.ApplicationModule
+	//builtin_modules
 
 	application_controller *ApplicationController
 }
@@ -43,13 +42,15 @@ func NewController(username string, key string) (*Controller, error) {
 		ret.db = t
 	}
 
-	ret.builtin_app_modules = make(map[string]common_types.ApplicationModule)
-	ret.builtin_app_modules[builtin_ownkeypair] = new(builtin_ownkeypair.Module)
-	ret.builtin_app_modules[builtin_owntlscert] = new(builtin_owntlscert.Module)
-	ret.builtin_app_modules[builtin_net] = new(builtin_net.Module)
-	ret.builtin_app_modules[builtin_net_ip] = new(builtin_net_ip.Module)
+	builtin_modules := make(common_types.ApplicationModuleMap)
 
-	ret.module_searcher = ModuleSercherNew(ret.builtin_app_modules)
+	builtin_modules[builtin_ownkeypair] = new(builtin_ownkeypair.Module)
+	builtin_modules[builtin_owntlscert] = new(builtin_owntlscert.Module)
+	// builtin_modules[builtin_ownsshcert] = new(builtin_ownsshcert.Module)
+	builtin_modules[builtin_net] = new(builtin_net.Module)
+	builtin_modules[builtin_net_ip] = new(builtin_net_ip.Module)
+
+	ret.module_searcher = ModuleSercherNew(builtin_modules)
 
 	ret.application_controller = NewApplicationController(
 		ret.module_searcher,
@@ -57,7 +58,7 @@ func NewController(username string, key string) (*Controller, error) {
 	)
 
 	// Next line requires modules to be present already
-	ret.application_controller.RestoreInstances()
+	ret.application_controller.Load()
 
 	ret.window_main = UIWindowMainNew(ret)
 

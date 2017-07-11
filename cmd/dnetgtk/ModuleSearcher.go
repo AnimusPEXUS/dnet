@@ -7,7 +7,7 @@ import (
 )
 
 type ModuleSearcher struct {
-	builtin []common_types.ApplicationModule
+	builtin common_types.ApplicationModuleMap
 }
 
 func ModuleSearcherNew(
@@ -17,6 +17,10 @@ func ModuleSearcherNew(
 	ret.builtin = builtin
 	return ret
 }
+
+//func (self *ModuleSearcher) GetBuiltinModules() common_types.ApplicationModuleMap {
+//	return self.builtin
+//}
 
 func (self *ModuleSearcher) ListModules() []*ModuleSearcherSearchResult {
 	ret := make([]*ModuleSercherSearchResult, 0)
@@ -62,6 +66,8 @@ func (self *ModuleSearcher) GetMod(
 	return res2, nil
 }
 
+// NOTE:  name does not mean if builtin == false
+// NOTE:  checksum does not mean if builtin == true
 func (self *ModuleSearcher) SearchMod(
 	builtin bool,
 	name *common_types.ModuleName,
