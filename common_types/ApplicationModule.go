@@ -98,5 +98,5 @@ type ApplicationModuleInstance interface {
 	// HaveUI() result's to false, then GetUI() should return non-nil error
 	// stating so. anyway, DNet Implimenting Software should not allow user to
 	// call GetUI() if HaveUI() results to false
-	GetUI() (interface{}, error)
+	GetUI(interface{}) (interface{}, error)
 }

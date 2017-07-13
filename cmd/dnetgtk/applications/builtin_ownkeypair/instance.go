@@ -67,7 +67,7 @@ func (self *Instance) GetSelf(local_svc_name string) (
 	return nil, nil, errors.New("access denied")
 }
 
-func (self *Instance) GetUI() (interface{}, error) {
+func (self *Instance) GetUI(interface{}) (interface{}, error) {
 	self.window_show_sync.Lock()
 	defer self.window_show_sync.Unlock()
 

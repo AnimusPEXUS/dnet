@@ -428,32 +428,31 @@ func UIWindowMainTabApplicationsNew(
 	ret.button_open_window_application_preset.Connect(
 		"clicked",
 		func() {
-			/*
-				value, ok := ret.GetSelectedPresetName()
-				if ok {
+			value, ok := ret.GetSelectedPresetName()
+			if ok {
 
-					for key, val := range ret.main_window.controller.application_controller.application_wrappers {
-						if i.Name.Value() == value {
-							if i.Module.HaveUI() {
-								err := i.Instance.ShowUI()
-								if err != nil {
-									d := gtk.MessageDialogNew(
-										ret.main_window.win,
-										0,
-										gtk.MESSAGE_ERROR,
-										gtk.BUTTONS_OK,
-										"Trying to show window resulted in error: "+err.Error(),
-									)
-									d.Run()
-									d.Destroy()
-
-								}
-							}
-							break
-						}
-					}
+				value_obj, err := common_types.ModuleNameNew(value)
+				if err != nil {
+					panic("error")
 				}
-			*/
+
+				err = ret.main_window.controller.
+					application_controller.ModuleShowUI(value_obj)
+
+				if err != nil {
+
+					d := gtk.MessageDialogNew(
+						ret.main_window.win,
+						0,
+						gtk.MESSAGE_ERROR,
+						gtk.BUTTONS_OK,
+						"Trying to show window resulted in error: "+err.Error(),
+					)
+					d.Run()
+					d.Destroy()
+
+				}
+			}
 		},
 	)
 

@@ -4,6 +4,8 @@ import (
 	//	"fmt"
 
 	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
+	"sync"
+
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
@@ -59,6 +61,7 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret.com = com
 	ret.db = &DB{db: com.GetDBConnection()}
 	ret.mod = self
+	ret.window_show_sync = new(sync.Mutex)
 
 	ret.module_instances = make(
 		map[string]common_types.ApplicationModuleInstance,

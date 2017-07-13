@@ -66,6 +66,8 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret := &Instance{}
 	ret.com = com
 	ret.mod = self
+	ret.window_show_sync = new(sync.Mutex)
+
 	//ret.db = &DB{db: com.GetDBConnection()}
 
 	ret.window_show_sync = &sync.Mutex{}

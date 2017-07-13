@@ -202,3 +202,8 @@ func UIWindowNew(inst *Instance) (*UIWindow, error) {
 
 	return ret, nil
 }
+
+func (self *UIWindow) Show() error {
+	self.window.ShowAll()
+	return nil
+}

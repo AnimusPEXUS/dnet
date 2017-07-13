@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 type SafeApplicationModuleInstanceWrap struct {
@@ -316,11 +317,16 @@ func (self *ApplicationController) SetModuleEnabled(
 
 			if stat.Enabled {
 
+				db, err := self.db.GetAppDB(name.Value())
+				if err != nil {
+					return errors.New("Error getting DB connection: " + err.Error())
+				}
+
 				cc := &ControllerCommunicatorForApp{
 					name:       name,
 					controller: self.controller,
 					wrap:       val,
-					db:         self.db.db,
+					db:         db.DB,
 				}
 
 				if ins, err := val.Module.Instance(cc); err != nil {
@@ -364,4 +370,78 @@ func (self *ApplicationController) GetModuleStatus(
 	}
 
 	return ret, err
+}
+
+func (self *ApplicationController) ModuleHaveUI(
+	name *common_types.ModuleName,
+) (bool, error) {
+	for key, val := range self.application_wrappers {
+		if key == name.Value() {
+			return val.Module.HaveUI(), nil
+		}
+	}
+	return false, errors.New("module not found")
+}
+
+func (self *ApplicationController) ModuleShowUI(
+	name *common_types.ModuleName,
+) error {
+	ok, err := self.ModuleHaveUI(name)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("module have no UI")
+	}
+
+	for key, val := range self.application_wrappers {
+		if key == name.Value() {
+			if val.Instance == nil {
+				return errors.New("Module not instantiated, so can't get it's UI")
+			}
+			ui, err := val.Instance.GetUI(nil)
+			if err != nil {
+				return err
+			}
+			switch ui.(type) {
+
+			case interface {
+				Show() error
+			}:
+				return ui.(interface {
+					Show() error
+				}).Show()
+
+			case interface {
+				Get() (*gtk.Window, error)
+			}:
+				wind, err := ui.(interface {
+					Get() (*gtk.Window, error)
+				}).Get()
+
+				if err != nil {
+					return errors.New(
+						"Trying to get gtk.Window from module '" + key +
+							"' resulted in error:\n" +
+							err.Error(),
+					)
+				}
+
+				wind.ShowAll()
+
+			default:
+				return errors.New(
+					"ApplicationController doesn't know how to handle '" + key +
+						"' module window, or said module doesn't have window at all\n" +
+						"This should be considered programming error ether of module " +
+						"ether of DNetGtk",
+				)
+			}
+			return nil
+		}
+	}
+
+	return errors.New(
+		"some unknown error. this shouldn't been happen. contact developer",
+	)
 }

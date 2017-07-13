@@ -196,6 +196,7 @@ func UIWindowNew(instance *Instance) *UIWindow {
 	return ret
 }
 
-func (self *UIWindow) Show() {
+func (self *UIWindow) Show() error {
 	self.window.ShowAll()
+	return nil
 }

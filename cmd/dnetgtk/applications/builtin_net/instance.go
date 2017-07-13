@@ -3,6 +3,7 @@ package builtin_net
 import (
 	"errors"
 	"net"
+	"sync"
 
 	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -17,6 +18,9 @@ type Instance struct {
 	w *workerstatus.WorkerStatus
 
 	module_instances map[string]common_types.ApplicationModuleInstance
+
+	//window           *UIWindow
+	window_show_sync *sync.Mutex
 }
 
 func (self *Instance) Start() {
@@ -62,7 +66,7 @@ func (self *Instance) RequestInstance(local_svc_name string) (
 	return nil, nil, errors.New("any access is denied to this module")
 }
 
-func (self *Instance) GetUI() (interface{}, error) {
+func (self *Instance) GetUI(interface{}) (interface{}, error) {
 	return nil, errors.New("not implimented")
 }
 

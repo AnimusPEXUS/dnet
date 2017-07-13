@@ -2,6 +2,7 @@ package builtin_owntlscert
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
@@ -55,6 +56,7 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret.com = com
 	ret.db = &DB{db: com.GetDBConnection()}
 	ret.mod = self
+	ret.window_show_sync = new(sync.Mutex)
 
 	if !ret.db.db.HasTable(&OwnData{}) {
 		if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
