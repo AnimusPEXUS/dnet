@@ -72,13 +72,17 @@ func UIWindowLoginNew(preset_entry_name string) *UIWindowLogin {
 			button *gtk.Button,
 			win *UIWindowLogin,
 		) {
-			txt, err := win.entry_name.GetText()
+			name, err := win.entry_name.GetText()
+			if err != nil {
+				panic(err.Error)
+			}
+			password, err := win.entry_password.GetText()
 			if err != nil {
 				panic(err.Error)
 			}
 			controller, err := NewController(
-				txt,
-				"",
+				name,
+				password,
 			)
 			if err != nil {
 				glib.IdleAdd(

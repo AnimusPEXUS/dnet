@@ -326,7 +326,7 @@ func (self *ApplicationController) SetModuleEnabled(
 					name:       name,
 					controller: self.controller,
 					wrap:       val,
-					db:         db.DB,
+					db:         db.db,
 				}
 
 				if ins, err := val.Module.Instance(cc); err != nil {

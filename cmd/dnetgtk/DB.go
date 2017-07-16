@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/mutecomm/go-sqlcipher"
+	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type OwnData struct {
@@ -31,8 +33,22 @@ func (ApplicationStatus) TableName() string {
 }
 
 type AppDB struct {
-	Name string
-	DB   *gorm.DB
+	name string
+	db   *gorm.DB
+}
+
+func (self *AppDB) Key(value string) error {
+	// TODO https://github.com/jinzhu/gorm/issues/1498
+	return self.db.Exec(
+		fmt.Sprintf("PRAGMA key = %v;", self.db.NewScope(nil).Quote(value)),
+	).Error
+}
+
+func (self *AppDB) ReKey(value string) error {
+	// TODO https://github.com/jinzhu/gorm/issues/1498
+	return self.db.Exec(
+		fmt.Sprintf("PRAGMA rekey = %v;", self.db.NewScope(nil).Quote(value)),
+	).Error
 }
 
 type DB struct {
@@ -40,6 +56,8 @@ type DB struct {
 	key      string
 	db       *gorm.DB
 	app_db   []*AppDB
+
+	get_app_db_mutex *sync.Mutex
 }
 
 func NewDB(
@@ -50,12 +68,20 @@ func NewDB(
 	ret.username = username
 	ret.key = key
 
+	ret.get_app_db_mutex = &sync.Mutex{}
+
 	db, err := OpenMainStorage(username)
 	if err != nil {
 		return nil, err
 	}
 
+	db = db.Debug()
+
 	ret.db = db
+
+	if err := ret.Key(key); err != nil {
+		return nil, err
+	}
 
 	/*
 		err = db.Exec("VACUUM;").Error
@@ -74,21 +100,15 @@ func NewDB(
 
 	if !db.HasTable(&OwnData{}) {
 		if err := db.CreateTable(&OwnData{}).Error; err != nil {
-			fmt.Println("error creating OwnData table")
+			return nil, err
 		}
 	}
 
 	if !db.HasTable(&ApplicationStatus{}) {
 		if err := db.CreateTable(&ApplicationStatus{}).Error; err != nil {
-			fmt.Println("error creating ApplicationStatus table")
+			return nil, err
 		}
 	}
-
-	/*
-		if err := db.Commit().Error; err != nil {
-			fmt.Println("Commit error:", err.Error())
-		}
-	*/
 
 	return ret, nil
 
@@ -96,8 +116,11 @@ func NewDB(
 
 func (self *DB) GetAppDB(name string) (*AppDB, error) {
 
+	self.get_app_db_mutex.Lock()
+	defer self.get_app_db_mutex.Unlock()
+
 	for _, i := range self.app_db {
-		if i.Name == name {
+		if i.name == name {
 			return i, nil
 		}
 	}
@@ -108,8 +131,8 @@ func (self *DB) GetAppDB(name string) (*AppDB, error) {
 	}
 
 	ret := &AppDB{
-		Name: name,
-		DB:   db,
+		name: name,
+		db:   db,
 	}
 
 	self.app_db = append(
@@ -186,4 +209,18 @@ func (self *DB) SetApplicationStatus(value *ApplicationStatus) error {
 		err = self.db.Save(value).Error
 	}
 	return err
+}
+
+func (self *DB) Key(value string) error {
+	// TODO https://github.com/jinzhu/gorm/issues/1498
+	return self.db.Exec(
+		fmt.Sprintf("PRAGMA key = %v;", self.db.NewScope(nil).Quote(value)),
+	).Error
+}
+
+func (self *DB) ReKey(value string) error {
+	// TODO https://github.com/jinzhu/gorm/issues/1498
+	return self.db.Exec(
+		fmt.Sprintf("PRAGMA rekey = %v;", self.db.NewScope(nil).Quote(value)),
+	).Error
 }

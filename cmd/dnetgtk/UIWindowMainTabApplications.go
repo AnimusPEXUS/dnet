@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/AnimusPEXUS/goset"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
@@ -22,6 +25,8 @@ type UIWindowMainTabApplications struct {
 	tw_application_modules                *gtk.TreeView
 	application_presets                   *gtk.ListStore
 	application_modules                   *gtk.ListStore
+
+	refresh_app_preset_list_item_lock *sync.Mutex
 }
 
 func UIWindowMainTabApplicationsNew(
@@ -30,6 +35,8 @@ func UIWindowMainTabApplicationsNew(
 ) (*UIWindowMainTabApplications, error) {
 
 	ret := new(UIWindowMainTabApplications)
+
+	ret.refresh_app_preset_list_item_lock = &sync.Mutex{}
 
 	ret.main_window = main_window
 
@@ -221,46 +228,28 @@ func UIWindowMainTabApplicationsNew(
 	ret.button_refresh_application_presets.Connect(
 		"clicked",
 		func() {
-			mdl := ret.application_presets
+			set := goset.NewSetString()
 
 			{
-				iter, ok := mdl.GetIterFirst()
-				for {
-					if !ok {
-						break
-					}
-					ok = mdl.Remove(iter)
+				presets_mdl := ret.application_presets
+				wrappers := ret.main_window.controller.
+					application_controller.application_wrappers
+
+				for i, _ := range wrappers {
+					set.Add(i)
+				}
+
+				iter, ok := presets_mdl.GetIterFirst()
+				for ok {
+					val, _ := presets_mdl.GetValue(iter, 0)
+					val_str, _ := val.GetString()
+					set.Add(val_str)
+					ok = presets_mdl.IterNext(iter)
 				}
 			}
 
-			for key, _ := range ret.main_window.controller.
-				application_controller.application_wrappers {
-				key_obj, err := common_types.ModuleNameNew(key)
-				if err != nil {
-					panic("programming error")
-				}
-				stat, err := ret.main_window.controller.
-					application_controller.GetModuleStatus(key_obj)
-				if err != nil {
-					panic("programming error")
-				}
-
-				iter := mdl.Append()
-				cs := "N/A"
-				if !stat.Builtin {
-					cs = stat.Checksum
-				}
-				mdl.Set(
-					iter,
-					[]int{0, 1, 2, 3, 4},
-					[]interface{}{
-						key_obj.Value(),
-						stat.Builtin,
-						stat.Enabled,
-						cs,
-						stat.LastDBReKey.String(),
-					},
-				)
+			for _, i := range set.List() {
+				ret.RefreshAppPresetListItem(i.(string))
 			}
 
 		},
@@ -488,3 +477,69 @@ func (self *UIWindowMainTabApplications) GetSelectedModuleName() (
 	return "", false
 }
 */
+
+func (self *UIWindowMainTabApplications) RefreshAppPresetListItem(
+	item_name string,
+) error {
+	self.refresh_app_preset_list_item_lock.Lock()
+	defer self.refresh_app_preset_list_item_lock.Unlock()
+
+	item_name_obj := common_types.ModuleNameNewF(item_name)
+
+	presets_mdl := self.application_presets
+	wrappers := self.main_window.controller.
+		application_controller.application_wrappers
+
+	delete_preset := true
+	var preset_iter *gtk.TreeIter
+
+	for i, _ := range wrappers {
+		if i == item_name {
+			delete_preset = false
+			break
+		}
+	}
+
+	iter, ok := presets_mdl.GetIterFirst()
+	for ok {
+		val, _ := presets_mdl.GetValue(iter, 0)
+		val_str, _ := val.GetString()
+		if val_str == item_name {
+			preset_iter = iter
+			break
+		}
+		ok = presets_mdl.IterNext(iter)
+	}
+
+	if preset_iter == nil {
+		preset_iter = presets_mdl.Append()
+	}
+
+	if delete_preset {
+		if preset_iter != nil {
+			presets_mdl.Remove(preset_iter)
+		}
+	} else {
+		stat, err := self.main_window.controller.
+			application_controller.GetModuleStatus(item_name_obj)
+		if err != nil {
+			return err
+		}
+		cs := "N/A"
+		if !stat.Builtin {
+			cs = stat.Checksum
+		}
+		presets_mdl.Set(
+			preset_iter,
+			[]int{0, 1, 2, 3, 4},
+			[]interface{}{
+				item_name,
+				stat.Builtin,
+				stat.Enabled,
+				cs,
+				stat.LastDBReKey.String(),
+			},
+		)
+	}
+	return nil
+}

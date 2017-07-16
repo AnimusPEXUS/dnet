@@ -26,6 +26,14 @@ func ModuleNameNew(value string) (*ModuleName, error) {
 	return ret, nil
 }
 
+func ModuleNameNewF(value string) *ModuleName {
+	ret, err := ModuleNameNew(value)
+	if err != nil {
+		panic("error")
+	}
+	return ret
+}
+
 func (self *ModuleName) Value() string {
 	return self.value
 }
