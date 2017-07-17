@@ -75,8 +75,6 @@ func NewDB(
 		return nil, err
 	}
 
-	db = db.Debug()
-
 	ret.db = db
 
 	if err := ret.Key(key); err != nil {

@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/mutecomm/go-sqlcipher"
 )
 
 var DNET_CONFIG_DIR string
@@ -65,6 +66,8 @@ func OpenMainStorage(
 		return nil, err
 	}
 
+	db = db.Debug()
+
 	return db, nil
 }
 
@@ -86,6 +89,8 @@ func OpenApplicationStorage(
 	if err != nil {
 		return nil, err
 	}
+
+	db = db.Debug()
 
 	return db, nil
 }

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/gotk3/gotk3/gtk"
@@ -68,7 +71,9 @@ search:
 	return ret
 }
 
-func (self *ApplicationController) GetModuleInstances() common_types.ApplicationModuleInstanceMap {
+func (
+	self *ApplicationController,
+) GetModuleInstances() common_types.ApplicationModuleInstanceMap {
 	ret := make(common_types.ApplicationModuleInstanceMap)
 	for key, val := range self.application_wrappers {
 		if val.Instance != nil {
@@ -129,6 +134,8 @@ func (self *ApplicationController) AcceptModule(
 	save_to_db bool,
 ) error {
 
+	// TODO: security and sanity checks
+
 	for key, _ := range self.application_wrappers {
 		if key == name.Value() {
 			return errors.New("already have preset for module with same name")
@@ -165,14 +172,35 @@ func (self *ApplicationController) AcceptModule(
 		self.application_wrappers[name.Value()] = wrap
 	}
 
+	{
+		appstat, err := self.db.GetApplicationStatus(name.Value())
+		if err == nil {
+			app_db, err := self.db.GetAppDB(name.Value())
+			if err != nil {
+				return err
+			}
+
+			needs, err := self.IsModuleNeedsReKey(name)
+			if err != nil {
+				return err
+			}
+
+			if !needs {
+				app_db.Key(appstat.DBKey)
+			}
+		}
+	}
+
 	if save_to_db {
 		appstat, err := self.db.GetApplicationStatus(name.Value())
 		if err != nil {
 			appstat = &ApplicationStatus{}
 			appstat.Name = name.Value()
-			appstat.Builtin = builtin
-			appstat.Checksum = checksum.String()
 			appstat.Enabled = false
+		}
+		appstat.Builtin = builtin
+		if checksum != nil {
+			appstat.Checksum = checksum.String()
 		}
 
 		err = self.db.SetApplicationStatus(appstat)
@@ -180,12 +208,17 @@ func (self *ApplicationController) AcceptModule(
 			return err
 		}
 
-		/*
-			// TODO: todo
-			if self.IsModuleNeedsReKey(name) {
+		{
+			needs, err := self.IsModuleNeedsReKey(name)
+			if err != nil {
+				return err
+			}
+
+			if needs {
 				self.ModuleReKey(name)
 			}
-		*/
+		}
+
 	}
 
 	return nil
@@ -372,6 +405,12 @@ func (self *ApplicationController) GetModuleStatus(
 	return ret, err
 }
 
+func (self *ApplicationController) SetModuleStatus(
+	status *ApplicationStatus,
+) error {
+	return self.db.SetApplicationStatus(status)
+}
+
 func (self *ApplicationController) ModuleHaveUI(
 	name *common_types.ModuleName,
 ) (bool, error) {
@@ -444,4 +483,44 @@ func (self *ApplicationController) ModuleShowUI(
 	return errors.New(
 		"some unknown error. this shouldn't been happen. contact developer",
 	)
+}
+
+func (self *ApplicationController) IsModuleNeedsReKey(
+	name *common_types.ModuleName,
+) (bool, error) {
+	stat, err := self.GetModuleStatus(name)
+	if err != nil {
+		return false, err
+	}
+	return stat.DBKey == "" || stat.LastDBReKey == nil, nil
+}
+
+func (self *ApplicationController) ModuleReKey(
+	name *common_types.ModuleName,
+) error {
+	app_db, err := self.db.GetAppDB(name.Value())
+	if err != nil {
+		return err
+	}
+
+	stat, err := self.GetModuleStatus(name)
+	if err != nil {
+		return err
+	}
+	{
+		buff := make([]byte, 50)
+		rand.Read(buff)
+		buff_str := base64.RawStdEncoding.EncodeToString(buff)
+		stat.DBKey = buff_str
+
+		app_db.ReKey(buff_str)
+		app_db.Key(buff_str)
+	}
+	t := time.Now().UTC()
+	stat.LastDBReKey = &t
+	err = self.SetModuleStatus(stat)
+	if err != nil {
+		return err
+	}
+	return nil
 }
