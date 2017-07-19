@@ -30,6 +30,8 @@ type ApplicationController struct {
 	// One wrapper contains both Preset and Instance. Instance is made with Preset
 	// if Preset.Enabled value is true.
 	application_wrappers map[string]*SafeApplicationModuleInstanceWrap
+
+	module_instance_status_display_map map[string]string
 }
 
 func NewApplicationController(
@@ -41,6 +43,8 @@ func NewApplicationController(
 	error,
 ) {
 	ret := new(ApplicationController)
+
+	ret.module_instance_status_display_map = make(map[string]string)
 
 	ret.controller = controller
 	ret.db = db
@@ -127,12 +131,24 @@ func (self *ApplicationController) GetInstance(
 
 // ----------- Implimentation Part -----------
 
+func (self *ApplicationController) SafeApplicationPresetListRenew(
+	name *common_types.ModuleName,
+) {
+	if self.controller != nil &&
+		self.controller.window_main != nil &&
+		self.controller.window_main.UIWindowMainTabApplications != nil {
+		self.controller.window_main.UIWindowMainTabApplications.
+			RefreshAppPresetListItem(name.Value())
+	}
+}
+
 func (self *ApplicationController) AcceptModule(
 	builtin bool,
 	name *common_types.ModuleName,
 	checksum *common_types.ModuleChecksum,
 	save_to_db bool,
 ) error {
+	defer self.SafeApplicationPresetListRenew(name)
 
 	// TODO: security and sanity checks
 
@@ -193,7 +209,7 @@ func (self *ApplicationController) AcceptModule(
 
 	if save_to_db {
 		appstat, err := self.db.GetApplicationStatus(name.Value())
-		if err != nil {
+		if appstat == nil {
 			appstat = &ApplicationStatus{}
 			appstat.Name = name.Value()
 			appstat.Enabled = false
@@ -219,6 +235,25 @@ func (self *ApplicationController) AcceptModule(
 			}
 		}
 
+	}
+
+	{
+		for key, val := range self.application_wrappers {
+			if key == name.Value() {
+				if val.Module.IsWorker() {
+					dbstat, err := self.db.GetApplicationStatus(name.Value())
+					if err != nil {
+						return err
+					}
+					self.SetModuleEnabled(
+						name,
+						dbstat.Enabled,
+						false,
+					)
+				}
+				break
+			}
+		}
 	}
 
 	return nil
@@ -300,12 +335,6 @@ func (self *ApplicationController) Load() error {
 				false,
 			)
 
-			self.SetModuleEnabled(
-				name_obj,
-				dbstat.Enabled,
-				false,
-			)
-
 		}
 	}
 	return nil
@@ -340,6 +369,8 @@ func (self *ApplicationController) SetModuleEnabled(
 	value bool,
 	save_to_db bool,
 ) error {
+	defer self.SafeApplicationPresetListRenew(name)
+
 	for key, val := range self.application_wrappers {
 		if key == name.Value() {
 			stat, err := self.db.GetApplicationStatus(key)
@@ -366,10 +397,29 @@ func (self *ApplicationController) SetModuleEnabled(
 					return errors.New("Error instantiating module " + name.Value())
 				} else {
 					val.Instance = ins
+
+					for key, val := range self.application_wrappers {
+						nv := name.Value()
+						if key == nv {
+							if val.Module.IsWorker() {
+								go val.Instance.Start()
+							}
+							break
+						}
+					}
 				}
 			} else {
 				// TODO: possibly Instance have to have Destroy method. clear this out
 				// val.Instance.Destroy()
+				for key, val := range self.application_wrappers {
+					nv := name.Value()
+					if key == nv {
+						if val.Module.IsWorker() {
+							go val.Instance.Stop()
+						}
+						break
+					}
+				}
 				val.Instance = nil
 			}
 
@@ -523,4 +573,14 @@ func (self *ApplicationController) ModuleReKey(
 		return err
 	}
 	return nil
+}
+
+func (self *ApplicationController) ModuleInstanceStatusChangeListener(
+	name *common_types.ModuleName,
+	value string,
+) {
+	name_str := name.Value()
+	self.module_instance_status_display_map[name_str] = value
+	self.controller.window_main.UIWindowMainTabApplications.
+		RefreshAppPresetListItem(name_str)
 }

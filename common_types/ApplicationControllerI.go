@@ -1,9 +1,9 @@
 package common_types
 
 type ApplicationControllerI interface {
-	GetBuiltinModules() []ApplicationModule
-	GetImportedModules() []ApplicationModule
-	GetModuleInstances() []ApplicationModuleInstance
+	GetBuiltinModules() ApplicationModuleMap
+	GetImportedModules() ApplicationModuleMap
+	GetModuleInstances() ApplicationModuleInstanceMap
 
 	IsModuleExists(name *ModuleName) bool
 	IsModuleBuiltin(name *ModuleName) bool

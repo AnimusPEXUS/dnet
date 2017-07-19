@@ -7,8 +7,6 @@ import (
 	//"github.com/AnimusPEXUS/dnet"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_widgets/log_viewer"
 	//"github.com/AnimusPEXUS/dnet/common_types"
-
-	"github.com/AnimusPEXUS/gologger"
 )
 
 type UIWindowMain struct {
@@ -35,14 +33,14 @@ type UIWindowMain struct {
 
 	notebook_main *gtk.Notebook
 
-	log *gologger.Logger
+	//logger *gologger.Logger
 }
 
 func UIWindowMainNew(controller *Controller) *UIWindowMain {
 
 	ret := new(UIWindowMain)
 
-	ret.log = gologger.New()
+	//ret.logger = gologger.New()
 
 	ret.controller = controller
 
@@ -101,6 +99,7 @@ func UIWindowMainNew(controller *Controller) *UIWindowMain {
 		"toggled",
 		func() {
 			fmt.Println("toggled")
+			ret.controller.logger.Info("testing logger")
 		},
 	)
 

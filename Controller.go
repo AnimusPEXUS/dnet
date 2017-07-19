@@ -11,8 +11,9 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
+	"github.com/AnimusPEXUS/gologger"
+
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/worker"
 )
 
 // This is for cases when DNet (as a Controller), whises to access module
@@ -21,12 +22,14 @@ import (
 const DNET_UNIVERSAL_APPLICATION_NAME = "localDNet"
 
 type Controller struct {
-	*worker.Worker
-
 	application_controller common_types.ApplicationControllerI
+	logger                 *gologger.Logger
 }
 
-func NewController(application_controller common_types.ApplicationControllerI) (
+func NewController(
+	application_controller common_types.ApplicationControllerI,
+	logger *gologger.Logger,
+) (
 	*Controller,
 	error,
 ) {
@@ -35,6 +38,8 @@ func NewController(application_controller common_types.ApplicationControllerI) (
 	}
 	ret := new(Controller)
 	ret.application_controller = application_controller
+
+	logger.Info("DNet Controller initiation completed without errors")
 	return ret, nil
 }
 

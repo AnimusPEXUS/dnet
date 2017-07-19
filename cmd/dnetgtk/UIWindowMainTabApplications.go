@@ -148,11 +148,22 @@ func UIWindowMainTabApplicationsNew(
 			}
 			{
 				rend, _ := gtk.CellRendererTextNew()
+				//rend.SetActivatable(false)
+				column, _ := gtk.TreeViewColumnNewWithAttribute(
+					"Status",
+					rend,
+					"active",
+					3,
+				)
+				ret.tw_application_presets.AppendColumn(column)
+			}
+			{
+				rend, _ := gtk.CellRendererTextNew()
 				column, _ := gtk.TreeViewColumnNewWithAttribute(
 					"Checksum",
 					rend,
 					"text",
-					3,
+					4,
 				)
 				ret.tw_application_presets.AppendColumn(column)
 			}
@@ -163,7 +174,7 @@ func UIWindowMainTabApplicationsNew(
 					"Last ReKey Time",
 					rend,
 					"text",
-					4,
+					5,
 				)
 				ret.tw_application_presets.AppendColumn(column)
 			}
@@ -529,13 +540,24 @@ func (self *UIWindowMainTabApplications) RefreshAppPresetListItem(
 		if !stat.Builtin {
 			cs = stat.Checksum
 		}
+
+		module_running_status := "N/A"
+		for key, val := range self.main_window.controller.application_controller.
+			module_instance_status_display_map {
+			if key == item_name {
+				module_running_status = val
+				break
+			}
+		}
+
 		presets_mdl.Set(
 			preset_iter,
-			[]int{0, 1, 2, 3, 4},
+			[]int{0, 1, 2, 3, 4, 5},
 			[]interface{}{
 				item_name,
 				stat.Builtin,
 				stat.Enabled,
+				module_running_status,
 				cs,
 				stat.LastDBReKey.String(),
 			},

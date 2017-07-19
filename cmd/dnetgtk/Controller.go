@@ -20,6 +20,7 @@ type Controller struct {
 	//db_file  string
 	//password string
 	//opened   bool
+	// *worker.Worker
 
 	dnet_controller *dnet.Controller
 
@@ -72,6 +73,16 @@ func NewController(username string, key string) (*Controller, error) {
 
 	// Next line requires modules to be present already
 	ret.application_controller.Load()
+
+	if d, err := dnet.NewController(
+		ret.application_controller,
+		ret.logger,
+	); err != nil {
+		return nil,
+			errors.New("could not create new DNet Controller " + err.Error())
+	} else {
+		ret.dnet_controller = d
+	}
 
 	ret.window_main = UIWindowMainNew(ret)
 

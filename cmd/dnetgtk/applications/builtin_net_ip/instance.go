@@ -104,6 +104,16 @@ func (self *Instance) threadWorker(
 	data interface{},
 
 ) {
+	for !is_stop_flag() {
+		if self.window != nil {
+			if self.udp_beacon != nil {
+				self.window.label_udp_beacon_status.SetText(
+					self.udp_beacon.Worker.Status().String(),
+				)
+			}
+		}
+		time.Sleep(time.Second)
+	}
 }
 
 func (self *Instance) AcceptTCP(conn net.Conn, err error) {
