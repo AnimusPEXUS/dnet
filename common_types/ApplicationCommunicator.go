@@ -3,7 +3,6 @@ package common_types
 import (
 	"net"
 
-	"github.com/AnimusPEXUS/workerstatus"
 	"github.com/jinzhu/gorm"
 )
 
@@ -43,7 +42,4 @@ type ApplicationCommunicator interface {
 		ApplicationModule,
 		error,
 	)
-
-	// Notyfies DNet about module instance status change
-	InstanceStatusChanged(data *workerstatus.WorkerStatus)
 }

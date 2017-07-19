@@ -54,7 +54,7 @@ func (self *Module) HaveUI() bool {
 	return true
 }
 
-func (self *Module) Instance(com common_types.ApplicationCommunicator) (
+func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 	common_types.ApplicationModuleInstance,
 	error,
 ) {

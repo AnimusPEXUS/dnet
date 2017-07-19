@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/goset"
+	"github.com/AnimusPEXUS/worker"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -16,9 +18,17 @@ type SafeApplicationModuleInstanceWrap struct {
 	//Builtin  bool
 	Module   common_types.ApplicationModule
 	Instance common_types.ApplicationModuleInstance
+
+	// It is required to put and use this flag, because if using .Instance ==/!=
+	// nil to determine if module enabled, then it is mutch harder to check
+	// instance worker status + it is harder to trace what wall Instance's windows
+	// are closed then trying to disable module by assigning nil to .Instace
+	Enabled bool
 }
 
 type ApplicationController struct {
+	*worker.Worker
+
 	controller *Controller
 	db         *DB
 
@@ -34,6 +44,39 @@ type ApplicationController struct {
 	module_instance_status_display_map map[string]string
 }
 
+func (self *ApplicationController) threadWorker(
+
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
+
+	set_error func(error),
+
+	is_stop_flag func() bool,
+
+	defer_me func(),
+
+	data interface{},
+
+) {
+	defer defer_me()
+
+	for !is_stop_flag() {
+
+		if self.controller != nil &&
+			self.controller.window_main != nil &&
+			self.controller.window_main.UIWindowMainTabApplications != nil &&
+			self.controller.window_main.UIWindowMainTabApplications.
+				button_accept_application != nil {
+			fmt.Println("emiting click")
+			self.RefreshAllAcceptedApplicationListItems()
+		}
+
+		time.Sleep(time.Second)
+	}
+}
+
 func NewApplicationController(
 	controller *Controller,
 	module_searcher *ModuleSearcher,
@@ -44,7 +87,7 @@ func NewApplicationController(
 ) {
 	ret := new(ApplicationController)
 
-	ret.module_instance_status_display_map = make(map[string]string)
+	ret.Worker = worker.New(ret.threadWorker)
 
 	ret.controller = controller
 	ret.db = db
@@ -54,13 +97,59 @@ func NewApplicationController(
 	return ret, nil
 }
 
+func (
+	self *ApplicationController,
+) RefreshAllAcceptedApplicationListItems() {
+	set := goset.NewSetString()
+
+	{
+		presets_mdl := self.controller.window_main.UIWindowMainTabApplications.
+			application_presets
+		wrappers := self.application_wrappers
+
+		for i, _ := range wrappers {
+			set.Add(i)
+		}
+
+		iter, ok := presets_mdl.GetIterFirst()
+		for ok {
+			val, _ := presets_mdl.GetValue(iter, 0)
+			val_str, _ := val.GetString()
+			set.Add(val_str)
+			ok = presets_mdl.IterNext(iter)
+		}
+	}
+
+	for _, i := range set.List() {
+		self.RefreshAcceptedApplicationListItem(
+			common_types.ModuleNameNewF(i.(string)),
+		)
+	}
+
+}
+
+func (self *ApplicationController) RefreshAcceptedApplicationListItem(
+	name *common_types.ModuleName,
+) {
+	if self.controller != nil &&
+		self.controller.window_main != nil &&
+		self.controller.window_main.UIWindowMainTabApplications != nil {
+		self.controller.window_main.UIWindowMainTabApplications.
+			RefreshAppPresetListItem(name.Value())
+	}
+}
+
 // ----------- Interface Part -----------
 
-func (self *ApplicationController) GetBuiltinModules() common_types.ApplicationModuleMap {
+func (
+	self *ApplicationController,
+) GetBuiltinModules() common_types.ApplicationModuleMap {
 	return self.module_searcher.builtin
 }
 
-func (self *ApplicationController) GetImportedModules() common_types.ApplicationModuleMap {
+func (
+	self *ApplicationController,
+) GetImportedModules() common_types.ApplicationModuleMap {
 	builtins := self.GetBuiltinModules()
 	ret := make(common_types.ApplicationModuleMap)
 search:
@@ -131,39 +220,24 @@ func (self *ApplicationController) GetInstance(
 
 // ----------- Implimentation Part -----------
 
-func (self *ApplicationController) SafeApplicationPresetListRenew(
-	name *common_types.ModuleName,
-) {
-	if self.controller != nil &&
-		self.controller.window_main != nil &&
-		self.controller.window_main.UIWindowMainTabApplications != nil {
-		self.controller.window_main.UIWindowMainTabApplications.
-			RefreshAppPresetListItem(name.Value())
-	}
-}
-
 func (self *ApplicationController) AcceptModule(
 	builtin bool,
 	name *common_types.ModuleName,
 	checksum *common_types.ModuleChecksum,
 	save_to_db bool,
 ) error {
-	defer self.SafeApplicationPresetListRenew(name)
+	defer self.RefreshAcceptedApplicationListItem(name)
 
-	// TODO: security and sanity checks
-
-	for key, _ := range self.application_wrappers {
-		if key == name.Value() {
+	{ // security and sanity checks
+		if _, ok := self.application_wrappers[name.Value()]; ok {
 			return errors.New("already have preset for module with same name")
 		}
-	}
 
-	if t :=
-		self.IsModuleBuiltin(name); (builtin && !t) || (!builtin && t) {
-		return errors.New("trying to accept external module as builtin")
-	}
+		if t :=
+			self.IsModuleBuiltin(name); (builtin && !t) || (!builtin && t) {
+			return errors.New("trying to accept external module as builtin")
+		}
 
-	{
 		search_res, err :=
 			self.module_searcher.SearchMod(builtin, name, checksum)
 		if err != nil {
@@ -175,7 +249,37 @@ func (self *ApplicationController) AcceptModule(
 		}
 	}
 
-	{
+	{ // Save to database if needed
+		if save_to_db {
+			appstat, err := self.db.GetApplicationStatus(name.Value())
+			if appstat == nil {
+				appstat = &ApplicationStatus{}
+				appstat.Name = name.Value()
+				appstat.Enabled = false
+			}
+			appstat.Builtin = builtin
+			if checksum != nil {
+				appstat.Checksum = checksum.String()
+			}
+
+			err = self.db.SetApplicationStatus(appstat)
+			if err != nil {
+				return err
+			}
+
+			{
+				if needs, err := self.IsModuleNeedsReKey(name); err != nil {
+					return err
+				} else {
+					if needs {
+						self.ModuleReKey(name)
+					}
+				}
+			}
+		}
+	}
+
+	{ // Create corresponding Wrap
 		module, err :=
 			self.module_searcher.GetMod(builtin, name, checksum)
 		if err != nil {
@@ -188,71 +292,40 @@ func (self *ApplicationController) AcceptModule(
 		self.application_wrappers[name.Value()] = wrap
 	}
 
-	{
-		appstat, err := self.db.GetApplicationStatus(name.Value())
-		if err == nil {
-			app_db, err := self.db.GetAppDB(name.Value())
-			if err != nil {
-				return err
-			}
-
-			needs, err := self.IsModuleNeedsReKey(name)
-			if err != nil {
-				return err
-			}
-
-			if !needs {
-				app_db.Key(appstat.DBKey)
-			}
-		}
-	}
-
-	if save_to_db {
-		appstat, err := self.db.GetApplicationStatus(name.Value())
-		if appstat == nil {
-			appstat = &ApplicationStatus{}
-			appstat.Name = name.Value()
-			appstat.Enabled = false
-		}
-		appstat.Builtin = builtin
-		if checksum != nil {
-			appstat.Checksum = checksum.String()
-		}
-
-		err = self.db.SetApplicationStatus(appstat)
+	{ // Instantiate module and give it new Communicator
+		wrap := self.application_wrappers[name.Value()]
+		db, err := self.db.GetAppDB(name.Value())
 		if err != nil {
-			return err
+			return errors.New("Error getting DB connection: " + err.Error())
 		}
 
-		{
-			needs, err := self.IsModuleNeedsReKey(name)
-			if err != nil {
-				return err
-			}
-
-			if needs {
-				self.ModuleReKey(name)
-			}
+		cc := &ControllerCommunicatorForApp{
+			name:       name,
+			controller: self.controller,
+			wrap:       wrap,
+			db:         db.db,
 		}
 
+		if ins, err := wrap.Module.Instantiate(cc); err != nil {
+			return errors.New("Error instantiating module " + name.Value())
+		} else {
+			wrap.Instance = ins
+		}
 	}
 
 	{
-		for key, val := range self.application_wrappers {
-			if key == name.Value() {
-				if val.Module.IsWorker() {
-					dbstat, err := self.db.GetApplicationStatus(name.Value())
-					if err != nil {
-						return err
-					}
-					self.SetModuleEnabled(
-						name,
-						dbstat.Enabled,
-						false,
-					)
-				}
-				break
+		wrap := self.application_wrappers[name.Value()]
+
+		if wrap.Module.IsWorker() {
+			dbstat, err := self.db.GetApplicationStatus(name.Value())
+			if err != nil {
+				return err
 			}
+			self.SetModuleEnabled(
+				name,
+				dbstat.Enabled,
+				false,
+			)
 		}
 	}
 
@@ -262,13 +335,11 @@ func (self *ApplicationController) AcceptModule(
 func (self *ApplicationController) RejectModule(
 	name *common_types.ModuleName,
 ) error {
-	for key, _ := range self.application_wrappers {
-		if key == name.Value() {
-			delete(self.application_wrappers, key)
-			break
-		}
+	v := name.Value()
+	if _, ok := self.application_wrappers[v]; ok {
+		delete(self.application_wrappers, v)
 	}
-	self.db.DelApplicationStatus(name.Value())
+	self.db.DelApplicationStatus(v)
 	return nil
 }
 
@@ -343,17 +414,13 @@ func (self *ApplicationController) Load() error {
 func (self *ApplicationController) GetModuleEnabled(
 	name *common_types.ModuleName,
 ) (bool, error) {
-	for key, _ := range self.application_wrappers {
-		if key == name.Value() {
-
-			stat, err := self.db.GetApplicationStatus(key)
-			if err != nil {
-				return false, errors.New("can't get ApplicationStatus for named module")
-			}
-			return stat.Enabled, nil
-
-			break
+	v := name.Value()
+	if _, ok := self.application_wrappers[v]; ok {
+		stat, err := self.db.GetApplicationStatus(v)
+		if err != nil {
+			return false, errors.New("can't get ApplicationStatus for named module")
 		}
+		return stat.Enabled, nil
 	}
 	return false, errors.New("module not found")
 }
@@ -369,76 +436,45 @@ func (self *ApplicationController) SetModuleEnabled(
 	value bool,
 	save_to_db bool,
 ) error {
-	defer self.SafeApplicationPresetListRenew(name)
+	defer self.RefreshAcceptedApplicationListItem(name)
 
-	for key, val := range self.application_wrappers {
-		if key == name.Value() {
-			stat, err := self.db.GetApplicationStatus(key)
+	key := name.Value()
+	if val, ok := self.application_wrappers[key]; ok {
+		stat, err := self.db.GetApplicationStatus(key)
+		if err != nil {
+			return errors.New("can't get ApplicationStatus for named module")
+		}
+		stat.Enabled = value
+		val.Enabled = value
+
+		if value {
+
+			if val.Module.IsWorker() {
+				go val.Instance.Start()
+			}
+
+		} else {
+			if val.Module.IsWorker() {
+				go val.Instance.Stop()
+			}
+		}
+
+		if save_to_db {
+			stat, err := self.db.GetApplicationStatus(name.Value())
 			if err != nil {
-				return errors.New("can't get ApplicationStatus for named module")
+				// TODO: possibly in this case, some additional action should be done
+				return errors.New(
+					"Can't change enabled status for module, which isn't registered",
+				)
 			}
 			stat.Enabled = value
-
-			if stat.Enabled {
-
-				db, err := self.db.GetAppDB(name.Value())
-				if err != nil {
-					return errors.New("Error getting DB connection: " + err.Error())
-				}
-
-				cc := &ControllerCommunicatorForApp{
-					name:       name,
-					controller: self.controller,
-					wrap:       val,
-					db:         db.db,
-				}
-
-				if ins, err := val.Module.Instance(cc); err != nil {
-					return errors.New("Error instantiating module " + name.Value())
-				} else {
-					val.Instance = ins
-
-					for key, val := range self.application_wrappers {
-						nv := name.Value()
-						if key == nv {
-							if val.Module.IsWorker() {
-								go val.Instance.Start()
-							}
-							break
-						}
-					}
-				}
-			} else {
-				// TODO: possibly Instance have to have Destroy method. clear this out
-				// val.Instance.Destroy()
-				for key, val := range self.application_wrappers {
-					nv := name.Value()
-					if key == nv {
-						if val.Module.IsWorker() {
-							go val.Instance.Stop()
-						}
-						break
-					}
-				}
-				val.Instance = nil
-			}
-
-			if save_to_db {
-				stat, err := self.db.GetApplicationStatus(name.Value())
-				if err != nil {
-					// TODO: possibly in this case, some additional action should be done
-					return errors.New(
-						"Can't change enabled status for module, which isn't registered",
-					)
-				}
-				stat.Enabled = value
-				self.db.SetApplicationStatus(stat)
-			}
-
-			return nil
+			self.db.SetApplicationStatus(stat)
 		}
+
+		return nil
 	}
-	return errors.New("named module not found")
+
+	return errors.New("named module not found. possible programming error")
 }
 
 func (self *ApplicationController) GetModuleStatus(
@@ -464,10 +500,9 @@ func (self *ApplicationController) SetModuleStatus(
 func (self *ApplicationController) ModuleHaveUI(
 	name *common_types.ModuleName,
 ) (bool, error) {
-	for key, val := range self.application_wrappers {
-		if key == name.Value() {
-			return val.Module.HaveUI(), nil
-		}
+	key := name.Value()
+	if val, ok := self.application_wrappers[key]; ok {
+		return val.Module.HaveUI(), nil
 	}
 	return false, errors.New("module not found")
 }
@@ -482,52 +517,50 @@ func (self *ApplicationController) ModuleShowUI(
 	if !ok {
 		return errors.New("module have no UI")
 	}
+	key := name.Value()
+	if val, ok := self.application_wrappers[key]; ok {
+		if val.Instance == nil {
+			return errors.New("Module not instantiated, so can't get it's UI")
+		}
+		ui, err := val.Instance.GetUI(nil)
+		if err != nil {
+			return err
+		}
+		switch ui.(type) {
 
-	for key, val := range self.application_wrappers {
-		if key == name.Value() {
-			if val.Instance == nil {
-				return errors.New("Module not instantiated, so can't get it's UI")
-			}
-			ui, err := val.Instance.GetUI(nil)
-			if err != nil {
-				return err
-			}
-			switch ui.(type) {
-
-			case interface {
+		case interface {
+			Show() error
+		}:
+			return ui.(interface {
 				Show() error
-			}:
-				return ui.(interface {
-					Show() error
-				}).Show()
+			}).Show()
 
-			case interface {
+		case interface {
+			Get() (*gtk.Window, error)
+		}:
+			wind, err := ui.(interface {
 				Get() (*gtk.Window, error)
-			}:
-				wind, err := ui.(interface {
-					Get() (*gtk.Window, error)
-				}).Get()
+			}).Get()
 
-				if err != nil {
-					return errors.New(
-						"Trying to get gtk.Window from module '" + key +
-							"' resulted in error:\n" +
-							err.Error(),
-					)
-				}
-
-				wind.ShowAll()
-
-			default:
+			if err != nil {
 				return errors.New(
-					"ApplicationController doesn't know how to handle '" + key +
-						"' module window, or said module doesn't have window at all\n" +
-						"This should be considered programming error ether of module " +
-						"ether of DNetGtk",
+					"Trying to get gtk.Window from module '" + key +
+						"' resulted in error:\n" +
+						err.Error(),
 				)
 			}
-			return nil
+
+			wind.ShowAll()
+
+		default:
+			return errors.New(
+				"ApplicationController doesn't know how to handle '" + key +
+					"' module window, or said module doesn't have window at all\n" +
+					"This should be considered programming error ether of module " +
+					"ether of DNetGtk",
+			)
 		}
+		return nil
 	}
 
 	return errors.New(
@@ -573,14 +606,4 @@ func (self *ApplicationController) ModuleReKey(
 		return err
 	}
 	return nil
-}
-
-func (self *ApplicationController) ModuleInstanceStatusChangeListener(
-	name *common_types.ModuleName,
-	value string,
-) {
-	name_str := name.Value()
-	self.module_instance_status_display_map[name_str] = value
-	self.controller.window_main.UIWindowMainTabApplications.
-		RefreshAppPresetListItem(name_str)
 }

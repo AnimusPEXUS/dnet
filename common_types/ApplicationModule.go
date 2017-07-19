@@ -40,8 +40,8 @@ type ApplicationModule interface {
 
 	//////////////////
 
-	// Single ApplicationInstance should serve all and any requests to it.
-	// DNet does not creates separate instances to each request.
+	// Single ApplicationInstance should serve all and any requests to it. DNet
+	// does not creates separate instances to each request.
 
 	// DNet automatically creates and passes DB connection along with
 	// ApplicationCommunicator structure
@@ -55,9 +55,10 @@ type ApplicationModule interface {
 	// should not perform closing of DB. otherwise DB misconsistencies may happen,
 	// leading to database reinitialization or other unspecified behavior.
 
-	// DNet will automatically do ReKey command to DB over some time intervals.
-	// presumably 30 days.
-	Instance(com ApplicationCommunicator) (ApplicationModuleInstance, error)
+	// DNet will not do automatic rekeys to not try to gues better time. Instead,
+	// UI should provide user with flexible tools for user to decide on he's own
+	// when he's need to do rekeys
+	Instantiate(com ApplicationCommunicator) (ApplicationModuleInstance, error)
 }
 
 type ApplicationModuleInstance interface {

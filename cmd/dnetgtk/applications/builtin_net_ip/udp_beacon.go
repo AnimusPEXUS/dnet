@@ -36,11 +36,12 @@ func (self *UDPBeacon) threadWorker(
 
 	is_stop_flag func() bool,
 
-	data interface{},
-) {
+	defer_me func(),
 
-	set_starting()
-	defer set_stopped()
+	data interface{},
+
+) {
+	defer defer_me()
 
 	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)
 	if err != nil {

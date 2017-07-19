@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type Module struct {
@@ -53,7 +54,7 @@ func (self *Module) HaveUI() bool {
 	return true
 }
 
-func (self *Module) Instance(com common_types.ApplicationCommunicator) (
+func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 	common_types.ApplicationModuleInstance,
 	error,
 ) {
@@ -63,9 +64,13 @@ func (self *Module) Instance(com common_types.ApplicationCommunicator) (
 	ret.mod = self
 	ret.window_show_sync = new(sync.Mutex)
 
-	ret.module_instances = make(
-		map[string]common_types.ApplicationModuleInstance,
-	)
+	/*
+		ret.module_instances = make(
+			map[string]common_types.ApplicationModuleInstance,
+		)
+	*/
+
+	ret.Worker = worker.New(ret.threadWorker)
 
 	/*
 		// this is not a good time to populate ret.module_instances,

@@ -34,11 +34,14 @@ func (self *TCPWorker) threadWorker(
 
 	is_stop_flag func() bool,
 
+	defer_me func(),
+
 	data interface{},
+
 ) {
+	defer defer_me()
 
 	set_starting()
-	defer set_stopped()
 
 	laddr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:5555")
 	if err != nil {

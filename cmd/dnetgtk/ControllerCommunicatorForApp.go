@@ -8,7 +8,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/workerstatus"
 )
 
 type ControllerCommunicatorForApp struct {
@@ -95,13 +94,4 @@ func (self *ControllerCommunicatorForApp) ServeConnection(
 	self.controller.dnet_controller.ServeConnection(who, conn)
 
 	return nil
-}
-
-func (self *ControllerCommunicatorForApp) InstanceStatusChanged(
-	data *workerstatus.WorkerStatus,
-) {
-	self.controller.application_controller.ModuleInstanceStatusChangeListener(
-		self.name,
-		data.String(),
-	)
 }

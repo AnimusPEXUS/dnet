@@ -4,13 +4,16 @@ import (
 	"errors"
 	"net"
 	"sync"
+	"time"
 
 	//"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 	"github.com/AnimusPEXUS/workerstatus"
 )
 
 type Instance struct {
+	*worker.Worker
 	com common_types.ApplicationCommunicator
 	db  *DB
 	mod *Module
@@ -21,31 +24,6 @@ type Instance struct {
 
 	//window           *UIWindow
 	window_show_sync *sync.Mutex
-}
-
-func (self *Instance) Start() {
-	go func() {
-		for _, value := range self.module_instances {
-			go value.Start()
-		}
-	}()
-}
-
-func (self *Instance) Stop() {
-	go func() {
-		for _, value := range self.module_instances {
-			go value.Stop()
-		}
-	}()
-}
-
-func (self *Instance) Status() *workerstatus.WorkerStatus {
-	t := make([]*workerstatus.WorkerStatus, 0)
-	for _, value := range self.module_instances {
-		t = append(t, value.Status())
-	}
-	self.w.Sum(t)
-	return self.w
 }
 
 func (self *Instance) ServeConn(
@@ -104,4 +82,27 @@ func (self *Instance) GetServeConn(calling_app_name string) func(
 		return nil
 	}
 	return self.ServeConn
+}
+
+func (self *Instance) threadWorker(
+
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
+
+	set_error func(error),
+
+	is_stop_flag func() bool,
+
+	defer_me func(),
+
+	data interface{},
+
+) {
+	defer defer_me()
+
+	for !is_stop_flag() {
+		time.Sleep(time.Second)
+	}
 }

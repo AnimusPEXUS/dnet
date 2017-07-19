@@ -7,8 +7,6 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
-	"github.com/AnimusPEXUS/goset"
-
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
@@ -152,7 +150,7 @@ func UIWindowMainTabApplicationsNew(
 				column, _ := gtk.TreeViewColumnNewWithAttribute(
 					"Status",
 					rend,
-					"active",
+					"text",
 					3,
 				)
 				ret.tw_application_presets.AppendColumn(column)
@@ -239,30 +237,8 @@ func UIWindowMainTabApplicationsNew(
 	ret.button_refresh_application_presets.Connect(
 		"clicked",
 		func() {
-			set := goset.NewSetString()
-
-			{
-				presets_mdl := ret.application_presets
-				wrappers := ret.main_window.controller.
-					application_controller.application_wrappers
-
-				for i, _ := range wrappers {
-					set.Add(i)
-				}
-
-				iter, ok := presets_mdl.GetIterFirst()
-				for ok {
-					val, _ := presets_mdl.GetValue(iter, 0)
-					val_str, _ := val.GetString()
-					set.Add(val_str)
-					ok = presets_mdl.IterNext(iter)
-				}
-			}
-
-			for _, i := range set.List() {
-				ret.RefreshAppPresetListItem(i.(string))
-			}
-
+			ret.main_window.controller.application_controller.
+				RefreshAllAcceptedApplicationListItems()
 		},
 	)
 
@@ -542,11 +518,20 @@ func (self *UIWindowMainTabApplications) RefreshAppPresetListItem(
 		}
 
 		module_running_status := "N/A"
-		for key, val := range self.main_window.controller.application_controller.
-			module_instance_status_display_map {
-			if key == item_name {
-				module_running_status = val
-				break
+		if self.main_window != nil &&
+			self.main_window.controller != nil &&
+			self.main_window.controller.application_controller != nil &&
+			self.main_window.controller.
+				application_controller.application_wrappers != nil {
+			if t, ok := self.main_window.controller.
+				application_controller.application_wrappers[item_name]; ok {
+				if t.Module.IsWorker() == false {
+					module_running_status = "Not a Worker"
+				} else {
+					if t.Instance != nil {
+						module_running_status = t.Instance.Status().StringT()
+					}
+				}
 			}
 		}
 

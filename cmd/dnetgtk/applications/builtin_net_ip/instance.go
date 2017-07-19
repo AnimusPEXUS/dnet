@@ -101,9 +101,13 @@ func (self *Instance) threadWorker(
 
 	is_stop_flag func() bool,
 
+	defer_me func(),
+
 	data interface{},
 
 ) {
+	defer defer_me()
+
 	for !is_stop_flag() {
 		if self.window != nil {
 			if self.udp_beacon != nil {
