@@ -68,6 +68,17 @@ func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 	ret.mod = self
 	ret.window_show_sync = new(sync.Mutex)
 
+	ret.db = com.GetDBConnection()
+	ret.logger = com.GetLogger()
+
+	ret.tcp_listener = TCPListenerNew(ret)
+	ret.udp_beacon = UDPBeaconNew(ret)
+	ret.udp_listener = UDPListenerNew(ret)
+
+	ret.cfg = &InstanceConfig{}
+	//ret.cfg.SetDefaults()
+	ret.LoadConfig()
+
 	//ret.db = &DB{db: com.GetDBConnection()}
 
 	ret.window_show_sync = &sync.Mutex{}

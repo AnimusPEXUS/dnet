@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type Module struct {
@@ -63,6 +64,8 @@ func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 			fmt.Println("builtin_owntlscert:", "Can't create table:", err.Error())
 		}
 	}
+
+	ret.Worker = worker.New(ret.threadWorker)
 
 	return ret, nil
 }

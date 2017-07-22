@@ -91,8 +91,6 @@ func (self *Instance) threadWorker(
 	set_stopping func(),
 	set_stopped func(),
 
-	set_error func(error),
-
 	is_stop_flag func() bool,
 
 	defer_me func(),

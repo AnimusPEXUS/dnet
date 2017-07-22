@@ -8,6 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/gologger"
 )
 
 type ControllerCommunicatorForApp struct {
@@ -19,6 +20,10 @@ type ControllerCommunicatorForApp struct {
 
 func (self *ControllerCommunicatorForApp) GetDBConnection() *gorm.DB {
 	return self.db
+}
+
+func (self *ControllerCommunicatorForApp) GetLogger() *gologger.Logger {
+	return self.controller.logger
 }
 
 // returns socket-like connection to local or remote service

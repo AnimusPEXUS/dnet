@@ -3,6 +3,7 @@ package common_types
 import (
 	"net"
 
+	"github.com/AnimusPEXUS/gologger"
 	"github.com/jinzhu/gorm"
 )
 
@@ -10,6 +11,8 @@ import (
 // to interact with DNet and other applications
 type ApplicationCommunicator interface {
 	GetDBConnection() *gorm.DB // Application's own db connection
+
+	GetLogger() *gologger.Logger
 
 	Connect(
 		// depending on Address, DNet will decide if connect local or remote

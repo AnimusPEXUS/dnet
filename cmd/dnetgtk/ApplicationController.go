@@ -51,8 +51,6 @@ func (self *ApplicationController) threadWorker(
 	set_stopping func(),
 	set_stopped func(),
 
-	set_error func(error),
-
 	is_stop_flag func() bool,
 
 	defer_me func(),
@@ -69,8 +67,7 @@ func (self *ApplicationController) threadWorker(
 			self.controller.window_main.UIWindowMainTabApplications != nil &&
 			self.controller.window_main.UIWindowMainTabApplications.
 				button_accept_application != nil {
-			fmt.Println("emiting click")
-			self.RefreshAllAcceptedApplicationListItems()
+			self.RefreshAllAcceptedApplicationListItems(true)
 		}
 
 		time.Sleep(time.Second)
@@ -99,7 +96,7 @@ func NewApplicationController(
 
 func (
 	self *ApplicationController,
-) RefreshAllAcceptedApplicationListItems() {
+) RefreshAllAcceptedApplicationListItems(no_db bool) {
 	set := goset.NewSetString()
 
 	{
@@ -123,6 +120,7 @@ func (
 	for _, i := range set.List() {
 		self.RefreshAcceptedApplicationListItem(
 			common_types.ModuleNameNewF(i.(string)),
+			no_db,
 		)
 	}
 
@@ -130,12 +128,16 @@ func (
 
 func (self *ApplicationController) RefreshAcceptedApplicationListItem(
 	name *common_types.ModuleName,
+	no_db bool,
 ) {
 	if self.controller != nil &&
 		self.controller.window_main != nil &&
 		self.controller.window_main.UIWindowMainTabApplications != nil {
 		self.controller.window_main.UIWindowMainTabApplications.
-			RefreshAppPresetListItem(name.Value())
+			RefreshAppPresetListItem(
+				name.Value(),
+				no_db,
+			)
 	}
 }
 
@@ -226,7 +228,7 @@ func (self *ApplicationController) AcceptModule(
 	checksum *common_types.ModuleChecksum,
 	save_to_db bool,
 ) error {
-	defer self.RefreshAcceptedApplicationListItem(name)
+	defer self.RefreshAcceptedApplicationListItem(name, false)
 
 	{ // security and sanity checks
 		if _, ok := self.application_wrappers[name.Value()]; ok {
@@ -436,7 +438,7 @@ func (self *ApplicationController) SetModuleEnabled(
 	value bool,
 	save_to_db bool,
 ) error {
-	defer self.RefreshAcceptedApplicationListItem(name)
+	defer self.RefreshAcceptedApplicationListItem(name, false)
 
 	key := name.Value()
 	if val, ok := self.application_wrappers[key]; ok {

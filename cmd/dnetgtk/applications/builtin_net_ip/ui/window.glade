@@ -124,7 +124,7 @@
                         <property name="can_focus">False</property>
                         <property name="spacing">5</property>
                         <child>
-                          <object class="GtkCheckButton" id="cb_tcp_listen_enabled">
+                          <object class="GtkCheckButton" id="cb_tcp_listener_enabled">
                             <property name="label" translatable="yes">Enabled</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -153,7 +153,7 @@
                                 <property name="margin_bottom">5</property>
                                 <property name="spacing">5</property>
                                 <child>
-                                  <object class="GtkLabel" id="label_tcp_listen_status">
+                                  <object class="GtkLabel" id="label_tcp_listener_status">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">(worker status)</property>
@@ -165,7 +165,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="button_tcp_listen_start">
+                                  <object class="GtkButton" id="button_tcp_listener_start">
                                     <property name="label" translatable="yes">Start</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -178,7 +178,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="button_tcp_listen_stop">
+                                  <object class="GtkButton" id="button_tcp_listener_stop">
                                     <property name="label" translatable="yes">Stop</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -225,19 +225,7 @@
                             <property name="margin_bottom">5</property>
                             <property name="spacing">5</property>
                             <child>
-                              <object class="GtkLabel">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Port</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkEntry" id="entry_tcp_listen_port">
+                              <object class="GtkEntry" id="entry_tcp_listener_port">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                               </object>
@@ -248,8 +236,8 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button_tcp_listen_port_apply">
-                                <property name="label" translatable="yes">Apply</property>
+                              <object class="GtkButton" id="button_tcp_listener_port_apply">
+                                <property name="label" translatable="yes">Set</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
@@ -275,8 +263,12 @@
                             </child>
                           </object>
                         </child>
-                        <child type="label_item">
-                          <placeholder/>
+                        <child type="label">
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Port</property>
+                          </object>
                         </child>
                       </object>
                       <packing>
@@ -291,7 +283,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">TCP Listening</property>
+                    <property name="label" translatable="yes">TCP Service</property>
                   </object>
                 </child>
               </object>
@@ -339,18 +331,6 @@
                                 <property name="margin_bottom">5</property>
                                 <property name="spacing">5</property>
                                 <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Port</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
                                   <object class="GtkEntry" id="entry_udp_port">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -363,7 +343,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="button_udp_port_apply">
-                                    <property name="label" translatable="yes">Apply</property>
+                                    <property name="label" translatable="yes">Set</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
@@ -389,8 +369,12 @@
                                 </child>
                               </object>
                             </child>
-                            <child type="label_item">
-                              <placeholder/>
+                            <child type="label">
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Port</property>
+                              </object>
                             </child>
                           </object>
                           <packing>
@@ -522,18 +506,6 @@
                                         <property name="margin_bottom">5</property>
                                         <property name="spacing">5</property>
                                         <child>
-                                          <object class="GtkLabel">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Interval (float. sec)</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
                                           <object class="GtkEntry" id="entry_udp_beacon_interval">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
@@ -546,7 +518,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkButton" id="button_beacon_interval_apply">
-                                            <property name="label" translatable="yes">Apply</property>
+                                            <property name="label" translatable="yes">Set</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">True</property>
@@ -559,8 +531,12 @@
                                         </child>
                                       </object>
                                     </child>
-                                    <child type="label_item">
-                                      <placeholder/>
+                                    <child type="label">
+                                      <object class="GtkLabel">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Interval (seconds integer)</property>
+                                      </object>
                                     </child>
                                   </object>
                                   <packing>
@@ -607,7 +583,7 @@
                                     <property name="can_focus">False</property>
                                     <property name="spacing">5</property>
                                     <child>
-                                      <object class="GtkCheckButton" id="cb_udp_locator_enabled">
+                                      <object class="GtkCheckButton" id="cb_udp_listener_enabled">
                                         <property name="label" translatable="yes">Enabled</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
@@ -636,7 +612,7 @@
                                             <property name="margin_bottom">5</property>
                                             <property name="spacing">5</property>
                                             <child>
-                                              <object class="GtkLabel" id="label_udp_locator_status">
+                                              <object class="GtkLabel" id="label_udp_listener_status">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="label" translatable="yes">(worker status)</property>
@@ -648,7 +624,7 @@
                                               </packing>
                                             </child>
                                             <child>
-                                              <object class="GtkButton" id="button_udp_locator_start">
+                                              <object class="GtkButton" id="button_udp_listener_start">
                                                 <property name="label" translatable="yes">Start</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
@@ -661,7 +637,7 @@
                                               </packing>
                                             </child>
                                             <child>
-                                              <object class="GtkButton" id="button_udp_locator_stop">
+                                              <object class="GtkButton" id="button_udp_listener_stop">
                                                 <property name="label" translatable="yes">Stop</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
@@ -698,7 +674,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Locator</property>
+                                <property name="label" translatable="yes">Listener</property>
                               </object>
                             </child>
                           </object>

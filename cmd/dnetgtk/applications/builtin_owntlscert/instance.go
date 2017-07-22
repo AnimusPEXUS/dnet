@@ -6,10 +6,12 @@ import (
 	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/workerstatus"
+	"github.com/AnimusPEXUS/worker"
 )
 
 type Instance struct {
+	*worker.Worker
+
 	com common_types.ApplicationCommunicator
 	db  *DB
 	mod *Module
@@ -19,12 +21,21 @@ type Instance struct {
 	window_show_sync *sync.Mutex
 }
 
-func (self *Instance) Start() {}
+func (self *Instance) threadWorker(
 
-func (self *Instance) Stop() {}
+	set_starting func(),
+	set_working func(),
+	set_stopping func(),
+	set_stopped func(),
 
-func (self *Instance) Status() *workerstatus.WorkerStatus {
-	return &workerstatus.WorkerStatus{}
+	is_stop_flag func() bool,
+
+	defer_me func(),
+
+	data interface{},
+
+) {
+	defer defer_me()
 }
 
 func (self *Instance) ServeConn(

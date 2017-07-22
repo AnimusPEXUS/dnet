@@ -1,13 +1,17 @@
 package builtin_net_ip
 
-import (
-	//"net"
+type Data struct {
+	ValueName string `gorm:"primary_key"`
+	Value     string
+}
 
-	"github.com/jinzhu/gorm"
-)
-
-type DB struct {
-	db *gorm.DB
+type InstanceConfig struct {
+	TCPListenerEnabled bool
+	UDPBeaconEnabled   bool
+	UDPListenerEnabled bool
+	TCPListenerPort    int
+	UDPPort            int
+	UDPBeaconInterval  int
 }
 
 type DiscoveryHistory struct {

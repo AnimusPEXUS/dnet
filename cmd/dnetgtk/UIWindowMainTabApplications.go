@@ -238,7 +238,7 @@ func UIWindowMainTabApplicationsNew(
 		"clicked",
 		func() {
 			ret.main_window.controller.application_controller.
-				RefreshAllAcceptedApplicationListItems()
+				RefreshAllAcceptedApplicationListItems(false)
 		},
 	)
 
@@ -467,86 +467,116 @@ func (self *UIWindowMainTabApplications) GetSelectedModuleName() (
 
 func (self *UIWindowMainTabApplications) RefreshAppPresetListItem(
 	item_name string,
+	no_db bool,
 ) error {
-	self.refresh_app_preset_list_item_lock.Lock()
-	defer self.refresh_app_preset_list_item_lock.Unlock()
 
-	item_name_obj := common_types.ModuleNameNewF(item_name)
+	go func() {
+		// chann := make(chan bool, 1)
 
-	presets_mdl := self.application_presets
-	wrappers := self.main_window.controller.
-		application_controller.application_wrappers
+		self.refresh_app_preset_list_item_lock.Lock()
+		defer self.refresh_app_preset_list_item_lock.Unlock()
 
-	delete_preset := true
-	var preset_iter *gtk.TreeIter
+		glib.IdleAdd(
+			func() {
+				// defer func() { chann <- true }()
+				item_name_obj := common_types.ModuleNameNewF(item_name)
 
-	for i, _ := range wrappers {
-		if i == item_name {
-			delete_preset = false
-			break
-		}
-	}
+				presets_mdl := self.application_presets
+				wrappers := self.main_window.controller.
+					application_controller.application_wrappers
 
-	iter, ok := presets_mdl.GetIterFirst()
-	for ok {
-		val, _ := presets_mdl.GetValue(iter, 0)
-		val_str, _ := val.GetString()
-		if val_str == item_name {
-			preset_iter = iter
-			break
-		}
-		ok = presets_mdl.IterNext(iter)
-	}
+				delete_preset := true
+				var preset_iter *gtk.TreeIter
 
-	if preset_iter == nil {
-		preset_iter = presets_mdl.Append()
-	}
-
-	if delete_preset {
-		if preset_iter != nil {
-			presets_mdl.Remove(preset_iter)
-		}
-	} else {
-		stat, err := self.main_window.controller.
-			application_controller.GetModuleStatus(item_name_obj)
-		if err != nil {
-			return err
-		}
-		cs := "N/A"
-		if !stat.Builtin {
-			cs = stat.Checksum
-		}
-
-		module_running_status := "N/A"
-		if self.main_window != nil &&
-			self.main_window.controller != nil &&
-			self.main_window.controller.application_controller != nil &&
-			self.main_window.controller.
-				application_controller.application_wrappers != nil {
-			if t, ok := self.main_window.controller.
-				application_controller.application_wrappers[item_name]; ok {
-				if t.Module.IsWorker() == false {
-					module_running_status = "Not a Worker"
-				} else {
-					if t.Instance != nil {
-						module_running_status = t.Instance.Status().StringT()
+				for i, _ := range wrappers {
+					if i == item_name {
+						delete_preset = false
+						break
 					}
 				}
-			}
-		}
 
-		presets_mdl.Set(
-			preset_iter,
-			[]int{0, 1, 2, 3, 4, 5},
-			[]interface{}{
-				item_name,
-				stat.Builtin,
-				stat.Enabled,
-				module_running_status,
-				cs,
-				stat.LastDBReKey.String(),
+				iter, ok := presets_mdl.GetIterFirst()
+				for ok {
+					val, _ := presets_mdl.GetValue(iter, 0)
+					val_str, _ := val.GetString()
+					if val_str == item_name {
+						preset_iter = iter
+						break
+					}
+					ok = presets_mdl.IterNext(iter)
+				}
+
+				if preset_iter == nil {
+					preset_iter = presets_mdl.Append()
+				}
+
+				if delete_preset {
+					if preset_iter != nil {
+						presets_mdl.Remove(preset_iter)
+					}
+				} else {
+
+					var stat *ApplicationStatus = nil
+					cs := "N/A"
+					if !no_db {
+						var err error
+						stat, err = self.main_window.controller.
+							application_controller.GetModuleStatus(item_name_obj)
+						if err != nil {
+							return // err
+						}
+						if !stat.Builtin {
+							cs = stat.Checksum
+						}
+					}
+
+					module_running_status := "N/A"
+					if self.main_window != nil &&
+						self.main_window.controller != nil &&
+						self.main_window.controller.application_controller != nil &&
+						self.main_window.controller.
+							application_controller.application_wrappers != nil {
+						if t, ok := self.main_window.controller.
+							application_controller.application_wrappers[item_name]; ok {
+							if t.Module.IsWorker() == false {
+								module_running_status = "Not a Worker"
+							} else {
+								if t.Instance != nil {
+									module_running_status = t.Instance.Status().StringT()
+								}
+							}
+						}
+					}
+
+					if !no_db {
+						presets_mdl.Set(
+							preset_iter,
+							[]int{0, 1, 2, 3, 4, 5},
+							[]interface{}{
+								item_name,
+								stat.Builtin,
+								stat.Enabled,
+								module_running_status,
+								cs,
+								stat.LastDBReKey.String(),
+							},
+						)
+					} else {
+						presets_mdl.Set(
+							preset_iter,
+							[]int{0, 3, 4},
+							[]interface{}{
+								item_name,
+								module_running_status,
+								cs,
+							},
+						)
+					}
+				}
+
 			},
 		)
-	}
+		// <-chann
+	}()
 	return nil
 }

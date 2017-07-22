@@ -66,8 +66,9 @@ type ApplicationModuleInstance interface {
 	// Those may be called only if Module's IsWorker() returns true.
 	// If Module's IsWorker() returns false, instance have simply
 	// impliment them as noop.
-	Start()
-	Stop()
+	Start() chan bool
+	Stop() chan bool
+	Restart() chan bool
 	Status() *workerstatus.WorkerStatus
 
 	ServeConn(

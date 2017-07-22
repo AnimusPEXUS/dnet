@@ -1,20 +1,26 @@
 package builtin_net_ip
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
+	"github.com/AnimusPEXUS/gologger"
 	"github.com/AnimusPEXUS/worker"
+	"github.com/jinzhu/gorm"
 )
 
 type Instance struct {
 	*worker.Worker
-	com common_types.ApplicationCommunicator
-	db  *DB
-	mod *Module
+	com    common_types.ApplicationCommunicator
+	db     *gorm.DB
+	logger *gologger.Logger
+	mod    *Module
 
 	/*
 		serveConnectionCB func(
@@ -24,12 +30,59 @@ type Instance struct {
 		) error
 	*/
 
-	tcp_worker  *TCPWorker
-	udp_beacon  *UDPBeacon
-	udp_locator *UDPLocator
+	tcp_listener *TCPListener
+	udp_beacon   *UDPBeacon
+	udp_listener *UDPListener
 
 	window           *UIWindow
 	window_show_sync *sync.Mutex
+
+	cfg *InstanceConfig
+}
+
+func (self *Instance) LoadConfig() error {
+	if !self.db.HasTable(&Data{}) {
+		if err := self.db.CreateTable(&Data{}).Error; err != nil {
+			return err
+		}
+	}
+
+	ret := new(Data)
+	if self.db.Where(
+		&Data{ValueName: "config"},
+	).Find(ret).Error == nil {
+		json.Unmarshal([]byte(ret.Value), self.cfg)
+		fmt.Println("LoadConfig result ok", self.cfg)
+	} else {
+		self.cfg = &InstanceConfig{
+			TCPListenerEnabled: false,
+			UDPBeaconEnabled:   false,
+			UDPListenerEnabled: false,
+			TCPListenerPort:    5556,
+			UDPPort:            5556,
+			UDPBeaconInterval:  60,
+		}
+	}
+
+	return nil
+}
+
+func (self *Instance) SaveConfig() error {
+
+	set := &Data{ValueName: "config"}
+	if d, err := json.Marshal(*self.cfg); err != nil {
+		return err
+	} else {
+		set.Value = string(d)
+	}
+	fmt.Println("self.cfg", self.cfg)
+	fmt.Println("set.Value", set.Value)
+	if self.db.NewRecord(set) {
+		return self.db.Create(set).Error
+	} else {
+		return self.db.Save(set).Error
+	}
+	return nil
 }
 
 func (self *Instance) ServeConn(
@@ -97,8 +150,6 @@ func (self *Instance) threadWorker(
 	set_stopping func(),
 	set_stopped func(),
 
-	set_error func(error),
-
 	is_stop_flag func() bool,
 
 	defer_me func(),
@@ -106,21 +157,54 @@ func (self *Instance) threadWorker(
 	data interface{},
 
 ) {
-	defer defer_me()
+	defer func() {
+
+		set_stopping()
+
+		if self.tcp_listener != nil {
+			self.tcp_listener.Stop()
+		}
+
+		if self.udp_beacon != nil {
+			self.udp_beacon.Stop()
+		}
+
+		if self.udp_listener != nil {
+			self.udp_listener.Stop()
+		}
+
+		defer_me()
+	}()
+
+	set_starting()
+
+	if self.tcp_listener != nil {
+		if self.cfg.TCPListenerEnabled {
+			self.tcp_listener.Start()
+		}
+	}
+
+	if self.udp_beacon != nil {
+		if self.cfg.UDPBeaconEnabled {
+			self.udp_beacon.Start()
+		}
+	}
+
+	if self.udp_listener != nil {
+		if self.cfg.UDPListenerEnabled {
+			self.udp_listener.Start()
+		}
+	}
+
+	set_working()
 
 	for !is_stop_flag() {
-		if self.window != nil {
-			if self.udp_beacon != nil {
-				self.window.label_udp_beacon_status.SetText(
-					self.udp_beacon.Worker.Status().String(),
-				)
-			}
-		}
 		time.Sleep(time.Second)
 	}
+
 }
 
-func (self *Instance) AcceptTCP(conn net.Conn, err error) {
+func (self *Instance) AcceptTCP(conn net.Conn) {
 
 }
 
@@ -129,7 +213,31 @@ func (self *Instance) IsNetwork() bool {
 }
 
 func (self *Instance) UDPBeaconMessage() string {
-	return "test" // TODO
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		self.logger.Error(err.Error())
+		return ""
+	}
+	addrsl := make([]string, 0)
+	for _, addr := range addrs {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			continue
+		}
+		addrsl = append(
+			addrsl,
+			net.JoinHostPort(
+				ip.String(),
+				strconv.Itoa(self.cfg.TCPListenerPort),
+			),
+		)
+	}
+	ret, err := json.Marshal(addrsl)
+	if err != nil {
+		self.logger.Error(err.Error())
+		return ""
+	}
+	return string(ret)
 }
 
 func (self *Instance) IncommingUDPBeaconMessage(
@@ -138,7 +246,14 @@ func (self *Instance) IncommingUDPBeaconMessage(
 }
 
 func (self *Instance) UDPBeaconSleepTime() time.Duration {
-	return time.Duration(1 * time.Minute)
+	// TODO: use/create constants
+	ret := 5
+	if self.cfg.UDPBeaconInterval < 5 || self.cfg.UDPBeaconInterval > 3600 {
+		ret = 60
+	} else {
+		ret = self.cfg.UDPBeaconInterval
+	}
+	return time.Duration(ret) * time.Second
 }
 
 func (self *Instance) GetSelf(calling_svc_name string) (

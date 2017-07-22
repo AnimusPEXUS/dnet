@@ -74,8 +74,8 @@ func NewController(username string, key string) (*Controller, error) {
 	// Next line requires modules to be present already
 	ret.application_controller.Load()
 
-	// NOTE: commented because of GTK+3 memory work problem
-	// ret.application_controller.Start()
+	// NOTE: commented because of GTK+3 memory work problems and crashes
+	ret.application_controller.Start()
 
 	if d, err := dnet.NewController(
 		ret.application_controller,

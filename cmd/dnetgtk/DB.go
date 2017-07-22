@@ -10,7 +10,7 @@ import (
 	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-type OwnData struct {
+type Data struct {
 	ValueName string `gorm:"primary_key"`
 	Value     string
 }
@@ -24,7 +24,7 @@ type ApplicationStatus struct {
 	DBKey       string
 }
 
-func (OwnData) TableName() string {
+func (Data) TableName() string {
 	return "settings"
 }
 
@@ -96,8 +96,8 @@ func NewDB(
 		}
 	*/
 
-	if !db.HasTable(&OwnData{}) {
-		if err := db.CreateTable(&OwnData{}).Error; err != nil {
+	if !db.HasTable(&Data{}) {
+		if err := db.CreateTable(&Data{}).Error; err != nil {
 			return nil, err
 		}
 	}
