@@ -152,8 +152,6 @@ func (self *Instance) threadWorker(
 
 	is_stop_flag func() bool,
 
-	defer_me func(),
-
 	data interface{},
 
 ) {
@@ -173,7 +171,6 @@ func (self *Instance) threadWorker(
 			self.udp_listener.Stop()
 		}
 
-		defer_me()
 	}()
 
 	set_starting()

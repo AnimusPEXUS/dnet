@@ -34,12 +34,9 @@ func (self *TCPListener) threadWorker(
 
 	is_stop_flag func() bool,
 
-	defer_me func(),
-
 	data interface{},
 
 ) {
-	defer defer_me()
 
 	set_starting()
 

@@ -29,12 +29,9 @@ func (self *Instance) threadWorker(
 
 	is_stop_flag func() bool,
 
-	defer_me func(),
-
 	data interface{},
 
 ) {
-	defer defer_me()
 }
 
 func (self *Instance) ServeConn(

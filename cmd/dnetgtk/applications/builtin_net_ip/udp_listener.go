@@ -33,12 +33,9 @@ func (self *UDPListener) threadWorker(
 
 	is_stop_flag func() bool,
 
-	defer_me func(),
-
 	data interface{},
 
 ) {
-	defer defer_me()
 
 	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)
 	if err != nil {

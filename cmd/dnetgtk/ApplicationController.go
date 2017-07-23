@@ -53,12 +53,9 @@ func (self *ApplicationController) threadWorker(
 
 	is_stop_flag func() bool,
 
-	defer_me func(),
-
 	data interface{},
 
 ) {
-	defer defer_me()
 
 	for !is_stop_flag() {
 
@@ -295,11 +292,18 @@ func (self *ApplicationController) AcceptModule(
 	}
 
 	{ // Instantiate module and give it new Communicator
+		appstat, err := self.db.GetApplicationStatus(name.Value())
+		if err != nil {
+			return err
+		}
+
 		wrap := self.application_wrappers[name.Value()]
 		db, err := self.db.GetAppDB(name.Value())
 		if err != nil {
 			return errors.New("Error getting DB connection: " + err.Error())
 		}
+
+		db.Key(appstat.DBKey)
 
 		cc := &ControllerCommunicatorForApp{
 			name:       name,

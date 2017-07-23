@@ -342,12 +342,8 @@ func UIWindowNew(instance *Instance) *UIWindow {
 
 			is_stop_flag func() bool,
 
-			// defering this function will guarantee "stopped" status after thread dies
-			defer_me func(),
-
 			data interface{},
 		) {
-			defer defer_me()
 			for !is_stop_flag() {
 				c := make(chan bool, 1)
 				glib.IdleAdd(
