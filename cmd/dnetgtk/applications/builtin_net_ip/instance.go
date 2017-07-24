@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/rpc"
 	"strconv"
 	"sync"
 	"time"
@@ -152,8 +153,6 @@ func (self *Instance) threadWorker(
 
 	is_stop_flag func() bool,
 
-	data interface{},
-
 ) {
 	defer func() {
 
@@ -265,4 +264,10 @@ func (self *Instance) GetSelf(calling_svc_name string) (
 
 	return nil, nil, errors.New("not allowed")
 
+}
+
+func (self *Instance) GetInnodeRPC(calling_app_name string) (
+	*rpc.Client, error,
+) {
+	return nil, errors.New("not implimented")
 }

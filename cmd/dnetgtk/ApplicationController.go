@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/rpc"
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -52,8 +53,6 @@ func (self *ApplicationController) threadWorker(
 	set_stopped func(),
 
 	is_stop_flag func() bool,
-
-	data interface{},
 
 ) {
 
@@ -612,4 +611,19 @@ func (self *ApplicationController) ModuleReKey(
 		return err
 	}
 	return nil
+}
+
+func (self *ApplicationController) GetInnodeRPC(
+	who_asks *common_types.ModuleName,
+	target_name *common_types.ModuleName,
+) (*rpc.Client, error) {
+	if target_name.Value() == "DNet" {
+		return self.controller.dnet_controller.GetInnodeRPC(who_asks.Value())
+	} else {
+		if inst, ok := self.application_wrappers[target_name.Value()]; !ok {
+			return nil, errors.New("module not found")
+		} else {
+			return inst.Instance.GetInnodeRPC(who_asks.Value())
+		}
+	}
 }

@@ -1,5 +1,7 @@
 package common_types
 
+import "net/rpc"
+
 type ApplicationControllerI interface {
 	GetBuiltinModules() ApplicationModuleMap
 	GetImportedModules() ApplicationModuleMap
@@ -12,4 +14,9 @@ type ApplicationControllerI interface {
 	IsInstanceExists(name *ModuleName) bool
 	IsInstanceBuiltin(name *ModuleName) bool
 	GetInstance(name *ModuleName) ApplicationModuleInstance
+
+	GetInnodeRPC(
+		who_asks *ModuleName,
+		target_name *ModuleName,
+	) (*rpc.Client, error)
 }

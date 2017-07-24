@@ -3,6 +3,7 @@ package builtin_net
 import (
 	"errors"
 	"net"
+	"net/rpc"
 	"sync"
 	"time"
 
@@ -93,11 +94,16 @@ func (self *Instance) threadWorker(
 
 	is_stop_flag func() bool,
 
-	data interface{},
-
 ) {
 
+	set_working()
 	for !is_stop_flag() {
 		time.Sleep(time.Second)
 	}
+}
+
+func (self *Instance) GetInnodeRPC(calling_app_name string) (
+	*rpc.Client, error,
+) {
+	return nil, errors.New("not implimented")
 }

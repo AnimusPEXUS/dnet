@@ -2,6 +2,7 @@ package common_types
 
 import (
 	"net"
+	"net/rpc"
 
 	"github.com/AnimusPEXUS/gologger"
 	"github.com/jinzhu/gorm"
@@ -45,4 +46,6 @@ type ApplicationCommunicator interface {
 		ApplicationModule,
 		error,
 	)
+
+	GetInnodeRPC(target_app_name string) (*rpc.Client, error)
 }

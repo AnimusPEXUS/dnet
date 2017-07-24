@@ -3,6 +3,7 @@ package builtin_owntlscert
 import (
 	"errors"
 	"net"
+	"net/rpc"
 	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -29,8 +30,6 @@ func (self *Instance) threadWorker(
 	set_stopped func(),
 
 	is_stop_flag func() bool,
-
-	data interface{},
 
 ) {
 }
@@ -99,4 +98,10 @@ func (self *Instance) GetUI(interface{}) (interface{}, error) {
 	}
 
 	return self.window, nil
+}
+
+func (self *Instance) GetInnodeRPC(calling_app_name string) (
+	*rpc.Client, error,
+) {
+	return nil, errors.New("not implimented")
 }

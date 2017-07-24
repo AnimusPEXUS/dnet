@@ -2,6 +2,7 @@ package common_types
 
 import (
 	"net"
+	"net/rpc"
 	"regexp"
 
 	"github.com/AnimusPEXUS/workerstatus"
@@ -101,4 +102,6 @@ type ApplicationModuleInstance interface {
 	// stating so. anyway, DNet Implimenting Software should not allow user to
 	// call GetUI() if HaveUI() results to false
 	GetUI(interface{}) (interface{}, error)
+
+	GetInnodeRPC(calling_app_name string) (*rpc.Client, error)
 }

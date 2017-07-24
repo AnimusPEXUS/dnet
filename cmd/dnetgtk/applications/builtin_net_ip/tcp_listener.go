@@ -34,8 +34,6 @@ func (self *TCPListener) threadWorker(
 
 	is_stop_flag func() bool,
 
-	data interface{},
-
 ) {
 
 	set_starting()

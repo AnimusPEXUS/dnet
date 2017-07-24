@@ -342,7 +342,6 @@ func UIWindowNew(instance *Instance) *UIWindow {
 
 			is_stop_flag func() bool,
 
-			data interface{},
 		) {
 			for !is_stop_flag() {
 				c := make(chan bool, 1)

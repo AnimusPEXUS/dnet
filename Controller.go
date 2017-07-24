@@ -151,3 +151,15 @@ func (self *Controller) ProbeAddress(
 ) {
 	return false, nil, nil
 }
+
+func (self *Controller) GetInnodeRPC(calling_app_name string) (
+	*rpc.Client,
+	error,
+) {
+	pipe1, pipe2 := net.Pipe()
+	serv := rpc.NewServer()
+	serv.RegisterName("DNET", NewInnodeRPC(self, calling_app_name))
+	serv.ServeConn(pipe1)
+	ret := rpc.NewClient(pipe2)
+	return ret, nil
+}

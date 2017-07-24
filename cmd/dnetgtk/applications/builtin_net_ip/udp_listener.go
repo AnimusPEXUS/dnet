@@ -33,8 +33,6 @@ func (self *UDPListener) threadWorker(
 
 	is_stop_flag func() bool,
 
-	data interface{},
-
 ) {
 
 	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/rpc"
 
 	"github.com/jinzhu/gorm"
 
@@ -99,4 +100,13 @@ func (self *ControllerCommunicatorForApp) ServeConnection(
 	self.controller.dnet_controller.ServeConnection(who, conn)
 
 	return nil
+}
+
+func (self *ControllerCommunicatorForApp) GetInnodeRPC(
+	target_app_name string,
+) (*rpc.Client, error) {
+	return self.controller.application_controller.GetInnodeRPC(
+		self.name,
+		common_types.ModuleNameNewF(target_app_name),
+	)
 }

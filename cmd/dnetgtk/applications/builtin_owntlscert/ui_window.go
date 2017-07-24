@@ -12,7 +12,6 @@ import (
 
 	// "github.com/AnimusPEXUS/dnet"
 	// "github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
 
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/common_widgets/key_cert_editor"
 )
@@ -95,15 +94,7 @@ func UIWindowNew(inst *Instance) (*UIWindow, error) {
 				var priv_key *rsa.PrivateKey
 				var pub_key *rsa.PublicKey
 
-				key_mod := (*builtin_ownkeypair.Instance)(nil)
-
-				inst, _, err :=
-					ret.inst.com.GetOtherApplicationInstance("builtin_ownkeypair")
-
-				key_mod, ok := inst.(*builtin_ownkeypair.Instance)
-				if !ok {
-					panic("this should not been happened")
-				}
+				rpc_client, err := ret.inst.com.GetInnodeRPC("builtin_ownkeypair")
 
 				if err != nil {
 					glib.IdleAdd(
@@ -123,9 +114,10 @@ func UIWindowNew(inst *Instance) (*UIWindow, error) {
 				}
 
 				{
-					var err error
 
-					priv_pem, err := key_mod.GetOwnPrivKey()
+					var priv_pem string
+					err := rpc_client.Call("RPC.GetOwnPrivKey", false, &priv_pem)
+
 					if err != nil {
 						glib.IdleAdd(
 							func() {

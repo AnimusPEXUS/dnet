@@ -3,6 +3,7 @@ package builtin_ownkeypair
 import (
 	"errors"
 	"net"
+	"net/rpc"
 	"sync"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -28,8 +29,6 @@ func (self *Instance) threadWorker(
 	set_stopped func(),
 
 	is_stop_flag func() bool,
-
-	data interface{},
 
 ) {
 }
@@ -101,4 +100,24 @@ func (self *Instance) GetUI(interface{}) (interface{}, error) {
 
 func (self *Instance) GetOwnPrivKey() (string, error) {
 	return self.db.GetOwnPrivKey()
+}
+
+func (self *Instance) GetInnodeRPC(calling_app_name string) (
+	*rpc.Client, error,
+) {
+	found := false
+	for _, i := range []string{"builtin_owntlscert"} {
+		if i == calling_app_name {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, errors.New("not allowed")
+	}
+	p1, p2 := net.Pipe()
+	serv := rpc.NewServer()
+	serv.RegisterName("RPC", NewInnodeRPC(self, calling_app_name))
+	go serv.ServeConn(p1)
+	return rpc.NewClient(p2), nil
 }
