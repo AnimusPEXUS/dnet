@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/AnimusPEXUS/worker"
+	"github.com/AnimusPEXUS/goworker"
 )
 
 type TCPListener struct {

@@ -12,7 +12,7 @@ import (
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/gologger"
-	"github.com/AnimusPEXUS/worker"
+	"github.com/AnimusPEXUS/goworker"
 	"github.com/jinzhu/gorm"
 )
 

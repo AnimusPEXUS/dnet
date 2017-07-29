@@ -5,7 +5,7 @@ import (
 	"net/rpc"
 	"regexp"
 
-	"github.com/AnimusPEXUS/workerstatus"
+	"github.com/AnimusPEXUS/goworker/workerstatus"
 )
 
 type (

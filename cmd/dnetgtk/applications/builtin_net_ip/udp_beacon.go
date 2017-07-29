@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/worker"
+	"github.com/AnimusPEXUS/goworker"
 )
 
 type UDPBeacon struct {

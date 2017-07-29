@@ -10,7 +10,7 @@ import (
 	"github.com/AnimusPEXUS/dnet"
 	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/goset"
-	"github.com/AnimusPEXUS/worker"
+	"github.com/AnimusPEXUS/goworker"
 	"github.com/gotk3/gotk3/gtk"
 )
 

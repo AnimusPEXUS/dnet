@@ -9,7 +9,7 @@ import (
 
 	"github.com/AnimusPEXUS/dnet"
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/worker"
+	"github.com/AnimusPEXUS/goworker"
 )
 
 type Instance struct {
