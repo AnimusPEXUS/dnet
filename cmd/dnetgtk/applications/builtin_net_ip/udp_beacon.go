@@ -2,6 +2,7 @@ package builtin_net_ip
 
 import (
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
@@ -34,7 +35,10 @@ func (self *UDPBeacon) threadWorker(
 
 ) {
 
-	addr, err := net.ResolveUDPAddr("udp", MULTICAST_ADDRESS)
+	addr, err := net.ResolveUDPAddr(
+		"udp",
+		net.JoinHostPort(MULTICAST_IP, strconv.Itoa(self.instance.cfg.UDPPort)),
+	)
 	if err != nil {
 		self.instance.logger.Error("udp_beacon: " + err.Error())
 		return

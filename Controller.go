@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/rpc"
+	"time"
 	//	"crypto/rsa"
 	//"crypto/tls"
 	//"errors"
@@ -131,28 +132,44 @@ func (self *Controller) _ISSHH_AuthLogCallback(
 	fmt.Println("authentication attempted", conn, method, err)
 }
 
-func (self *Controller) FoundPossibleNode(*common_types.TransportAddress) {
+func (self *Controller) PossiblyNodeDiscoveredNotificationReceptor(
+	module_name *common_types.ModuleName,
+	address common_types.NetworkAddress,
+) error {
+	tracker_module_rpc_client, err := self.application_controller.GetInnodeRPC(
+		common_types.ModuleNameNewF(DNET_UNIVERSAL_APPLICATION_NAME),
+		common_types.ModuleNameNewF("builtin_address_tracker"),
+	)
+	if err != nil {
+		return err
+	}
+
+	dnet_address := &common_types.Address{}
+
+	var res bool
+
+	t := time.Now().UTC()
+
+	tracker_module_rpc_client.Call(
+		"RPC.NoteRecord",
+		&struct {
+			DnetAddrStr    string
+			DiscoveredDate *time.Time
+			NetworkName    string
+			NetworkAddress common_types.NetworkAddress
+		}{
+			DnetAddrStr:    dnet_address.String(),
+			DiscoveredDate: &t,
+			NetworkName:    module_name.Value(),
+			NetworkAddress: address,
+		},
+		&res,
+	)
+
+	return nil
 }
 
-func (self *Controller) ProbeAddress(
-	addr *common_types.TransportAddress,
-	sync bool,
-	callback func(
-		success bool,
-		dnet_address *common_types.Address,
-		transport_address *common_types.TransportAddress,
-		arg interface{},
-	),
-	arg interface{},
-) (
-	bool,
-	*common_types.Address,
-	*common_types.TransportAddress,
-) {
-	return false, nil, nil
-}
-
-func (self *Controller) GetInnodeRPC(calling_app_name string) (
+func (self *Controller) GetInnodeRPC(calling_app_name *common_types.ModuleName) (
 	*rpc.Client,
 	error,
 ) {

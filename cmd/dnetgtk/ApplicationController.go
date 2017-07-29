@@ -4,10 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"net/rpc"
 	"time"
 
+	"github.com/AnimusPEXUS/dnet"
 	"github.com/AnimusPEXUS/dnet/common_types"
 	"github.com/AnimusPEXUS/goset"
 	"github.com/AnimusPEXUS/worker"
@@ -311,6 +311,8 @@ func (self *ApplicationController) AcceptModule(
 			db:         db.db,
 		}
 
+		cc.logger = &ControllerCommunicatorForAppLogger{p: cc}
+
 		if ins, err := wrap.Module.Instantiate(cc); err != nil {
 			return errors.New("Error instantiating module " + name.Value())
 		} else {
@@ -358,7 +360,7 @@ func (self *ApplicationController) Load() error {
 
 		i_obj, err := common_types.ModuleNameNew(i)
 		if err != nil {
-			fmt.Println(
+			self.controller.logger.Error(
 				"rejecting module invalid with invalid name",
 			)
 			self.db.DelApplicationStatus(i)
@@ -381,8 +383,8 @@ func (self *ApplicationController) Load() error {
 
 				name_obj, err = common_types.ModuleNameNew(dbstat.Name)
 				if err != nil {
-					fmt.Println(
-						"rejecting module ", dbstat.Name, " because name invalid",
+					self.controller.logger.Error(
+						"rejecting module " + dbstat.Name + " because name invalid",
 					)
 					self.RejectModule(i_obj)
 					continue
@@ -393,8 +395,8 @@ func (self *ApplicationController) Load() error {
 					checksum_obj_, err :=
 						common_types.ModuleChecksumNewFromString(dbstat.Checksum)
 					if err != nil {
-						fmt.Println(
-							"rejecting module", dbstat.Name, "because checksum invalid",
+						self.controller.logger.Error(
+							"rejecting module" + dbstat.Name + "because checksum invalid",
 						)
 						self.RejectModule(i_obj)
 						continue
@@ -404,12 +406,21 @@ func (self *ApplicationController) Load() error {
 			}
 
 			// TODO: error should be tracked
-			self.AcceptModule(
+			err = self.AcceptModule(
 				dbstat.Builtin,
 				name_obj,
 				checksum_obj,
 				false,
 			)
+			if err != nil {
+				self.controller.logger.Error(
+					"error accepting module " + name_obj.Value(),
+				)
+			} else {
+				self.controller.logger.Info(
+					"accepted module " + name_obj.Value(),
+				)
+			}
 
 		}
 	}
@@ -617,8 +628,8 @@ func (self *ApplicationController) GetInnodeRPC(
 	who_asks *common_types.ModuleName,
 	target_name *common_types.ModuleName,
 ) (*rpc.Client, error) {
-	if target_name.Value() == "DNet" {
-		return self.controller.dnet_controller.GetInnodeRPC(who_asks.Value())
+	if target_name.Value() == dnet.DNET_UNIVERSAL_APPLICATION_NAME {
+		return self.controller.dnet_controller.GetInnodeRPC(who_asks)
 	} else {
 		if inst, ok := self.application_wrappers[target_name.Value()]; !ok {
 			return nil, errors.New("module not found")

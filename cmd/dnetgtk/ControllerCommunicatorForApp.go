@@ -17,14 +17,15 @@ type ControllerCommunicatorForApp struct {
 	controller *Controller
 	wrap       *SafeApplicationModuleInstanceWrap
 	db         *gorm.DB // DB access
+	logger     *ControllerCommunicatorForAppLogger
 }
 
 func (self *ControllerCommunicatorForApp) GetDBConnection() *gorm.DB {
 	return self.db
 }
 
-func (self *ControllerCommunicatorForApp) GetLogger() *gologger.Logger {
-	return self.controller.logger
+func (self *ControllerCommunicatorForApp) GetLogger() gologger.LoggerI {
+	return self.logger
 }
 
 // returns socket-like connection to local or remote service
@@ -38,47 +39,6 @@ func (self *ControllerCommunicatorForApp) Connect(
 ) {
 
 	return nil, nil
-}
-
-func (self *ControllerCommunicatorForApp) GetOtherApplicationInstance(
-	name string,
-) (
-	common_types.ApplicationModuleInstance,
-	common_types.ApplicationModule,
-	error,
-) {
-
-	/*
-		if !self.controller.module_instances_added {
-			// NOTE: hitting this panic should be considered programming error
-			// TODO: check what this can't be exploited somehow
-			panic("programming error: modules not instantiated yet")
-			return nil, nil, errors.New("modules not instantiated yet")
-		}
-	*/
-
-	caller_name := self.name.Value()
-
-	/*
-		fmt.Printf(
-			"application `%s' tries to get `%s''s instance",
-			caller_name,
-			name,
-		)
-	*/
-
-	for key, val := range self.controller.application_controller.application_wrappers {
-		if key == name {
-			//	fmt.Println("  success")
-			if val.Instance == nil {
-				return nil, nil, errors.New("not instantiated")
-			}
-
-			return val.Instance.GetSelf(caller_name)
-		}
-	}
-	//fmt.Println("  failure")
-	return nil, nil, errors.New("module not found")
 }
 
 func (self *ControllerCommunicatorForApp) ServeConnection(
@@ -99,6 +59,22 @@ func (self *ControllerCommunicatorForApp) ServeConnection(
 
 	self.controller.dnet_controller.ServeConnection(who, conn)
 
+	return nil
+}
+
+func (self *ControllerCommunicatorForApp) PossiblyNodeDiscovered(
+	address common_types.NetworkAddress,
+) error {
+	if !self.wrap.Module.IsNetwork() {
+		return errors.New(
+			"Only network modules allowed to call NodeDiscovered",
+		)
+	}
+	go self.controller.dnet_controller.
+		PossiblyNodeDiscoveredNotificationReceptor(
+			self.name,
+			address,
+		)
 	return nil
 }
 

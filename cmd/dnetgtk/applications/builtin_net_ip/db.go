@@ -13,10 +13,3 @@ type InstanceConfig struct {
 	UDPPort            int
 	UDPBeaconInterval  int
 }
-
-type DiscoveryHistory struct {
-	dnet_addr_str   string
-	ip              string
-	port            int
-	discovered_time string
-}

@@ -33,7 +33,6 @@ type ApplicationModule interface {
 	// If calling instance's Start() Stop() and Status() methods have sence
 	IsWorker() bool
 
-	// If calling instance's ListDirectNodes() method has sence
 	IsNetwork() bool
 
 	// If instance can be called to show it's window
@@ -72,6 +71,12 @@ type ApplicationModuleInstance interface {
 	Restart() chan bool
 	Status() *workerstatus.WorkerStatus
 
+	// This is for modules with isNetwork() == true. Controller calling this
+	// than wants to connect to some particular node in this network.
+	Connect(
+		address NetworkAddress,
+	) (*net.Conn, error)
+
 	ServeConn(
 		local bool,
 		calling_app_name string, // this is meaningfull only if `local' is true
@@ -80,10 +85,10 @@ type ApplicationModuleInstance interface {
 		conn net.Conn,
 	) error
 
-	// for usage via ApplicationCommunicator
-	GetServeConn(calling_app_name string) func(
-		bool, string, string, *Address, net.Conn,
-	) error
+	// // for usage via ApplicationCommunicator
+	// GetServeConn(calling_app_name string) func(
+	// 	bool, string, string, *Address, net.Conn,
+	// ) error
 
 	// this method may be called only by local services.
 	// this method is for direct access for trusted modules (services), as this
@@ -91,11 +96,11 @@ type ApplicationModuleInstance interface {
 	// ApplicationModuleInstance, using calling_svc_name, should decide, to
 	// return valid values, or to return nils and error.
 
-	GetSelf(calling_app_name string) (
-		ApplicationModuleInstance,
-		ApplicationModule,
-		error,
-	)
+	// GetSelf(calling_app_name string) (
+	// 	ApplicationModuleInstance,
+	// 	ApplicationModule,
+	// 	error,
+	// )
 
 	// should return module's ui of some sort. If module has no window and it's
 	// HaveUI() result's to false, then GetUI() should return non-nil error

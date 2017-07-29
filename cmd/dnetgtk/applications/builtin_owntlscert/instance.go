@@ -32,6 +32,13 @@ func (self *Instance) threadWorker(
 	is_stop_flag func() bool,
 
 ) {
+
+}
+
+func (self *Instance) Connect(
+	address common_types.NetworkAddress,
+) (*net.Conn, error) {
+	return nil, errors.New("not implimented")
 }
 
 func (self *Instance) ServeConn(

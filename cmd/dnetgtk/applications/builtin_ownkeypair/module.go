@@ -1,11 +1,7 @@
 package builtin_ownkeypair
 
 import (
-	"fmt"
-	"sync"
-
 	"github.com/AnimusPEXUS/dnet/common_types"
-	"github.com/AnimusPEXUS/worker"
 )
 
 type Module struct {
@@ -52,19 +48,5 @@ func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 	common_types.ApplicationModuleInstance,
 	error,
 ) {
-	ret := &Instance{}
-	ret.com = com
-	ret.db = &DB{db: com.GetDBConnection()}
-	ret.mod = self
-	ret.window_show_sync = new(sync.Mutex)
-
-	if !ret.db.db.HasTable(&OwnData{}) {
-		if err := ret.db.db.CreateTable(&OwnData{}).Error; err != nil {
-			fmt.Println("builtin_ownkeypair:", "Can't create table:", err.Error())
-		}
-	}
-
-	ret.Worker = worker.New(ret.threadWorker)
-
-	return ret, nil
+	return NewInstance(self, com)
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/AnimusPEXUS/gologger"
 
-	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net"
+	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_address_tracker"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_net_ip"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_ownkeypair"
 	"github.com/AnimusPEXUS/dnet/cmd/dnetgtk/applications/builtin_owntlscert"
@@ -54,8 +54,10 @@ func NewController(username string, key string) (*Controller, error) {
 
 	builtin_modules["builtin_ownkeypair"] = new(builtin_ownkeypair.Module)
 	builtin_modules["builtin_owntlscert"] = new(builtin_owntlscert.Module)
+	builtin_modules["builtin_address_tracker"] =
+		new(builtin_address_tracker.Module)
 	// builtin_modules["builtin_ownsshcert"] = new(builtin_ownsshcert.Module)
-	builtin_modules["builtin_net"] = new(builtin_net.Module)
+	//builtin_modules["builtin_net"] = new(builtin_net.Module)
 	builtin_modules["builtin_net_ip"] = new(builtin_net_ip.Module)
 
 	ret.module_searcher = ModuleSearcherNew(builtin_modules)
@@ -71,6 +73,8 @@ func NewController(username string, key string) (*Controller, error) {
 		ret.application_controller = ac
 	}
 
+	// go func() {
+	// }()
 	// Next line requires modules to be present already
 	ret.application_controller.Load()
 

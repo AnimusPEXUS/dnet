@@ -20,7 +20,7 @@ type Instance struct {
 	*worker.Worker
 	com    common_types.ApplicationCommunicator
 	db     *gorm.DB
-	logger *gologger.Logger
+	logger gologger.LoggerI
 	mod    *Module
 
 	/*
@@ -41,9 +41,45 @@ type Instance struct {
 	cfg *InstanceConfig
 }
 
+func NewInstance(
+	mod *Module,
+	com common_types.ApplicationCommunicator,
+) (*Instance, error) {
+	ret := &Instance{}
+	ret.com = com
+	ret.mod = mod
+	ret.window_show_sync = new(sync.Mutex)
+
+	ret.db = com.GetDBConnection()
+	ret.logger = com.GetLogger()
+
+	ret.tcp_listener = TCPListenerNew(ret)
+	ret.udp_beacon = UDPBeaconNew(ret)
+	ret.udp_listener = UDPListenerNew(ret)
+
+	ret.cfg = &InstanceConfig{}
+	//ret.cfg.SetDefaults()
+	ret.LoadConfig()
+
+	//ret.db = &DB{db: com.GetDBConnection()}
+
+	ret.window_show_sync = &sync.Mutex{}
+
+	ret.Worker = worker.New(ret.threadWorker)
+
+	return ret, nil
+}
+
+func (self *Instance) Connect(
+	address common_types.NetworkAddress,
+) (*net.Conn, error) {
+	return nil, errors.New("not implimented")
+}
+
 func (self *Instance) LoadConfig() error {
-	if !self.db.HasTable(&Data{}) {
-		if err := self.db.CreateTable(&Data{}).Error; err != nil {
+	t := &Data{}
+	if !self.db.HasTable(t) {
+		if err := self.db.CreateTable(t).Error; err != nil {
 			return err
 		}
 	}
@@ -131,17 +167,6 @@ func (self *Instance) GetUI(interface{}) (interface{}, error) {
 	}
 
 	return self.window, nil
-}
-
-func (self *Instance) Connect(
-	to_who *common_types.Address,
-	as_service string,
-	to_service string,
-) (
-	*net.Conn,
-	error,
-) {
-	return nil, nil
 }
 
 func (self *Instance) threadWorker(
@@ -238,7 +263,10 @@ func (self *Instance) UDPBeaconMessage() string {
 
 func (self *Instance) IncommingUDPBeaconMessage(
 	conn *net.UDPAddr,
-	value string) {
+	value string,
+) {
+	con := common_types.NetworkAddressNewFromString(value)
+	go self.com.PossiblyNodeDiscovered(con)
 }
 
 func (self *Instance) UDPBeaconSleepTime() time.Duration {

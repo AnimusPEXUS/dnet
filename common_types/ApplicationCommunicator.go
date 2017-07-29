@@ -13,7 +13,7 @@ import (
 type ApplicationCommunicator interface {
 	GetDBConnection() *gorm.DB // Application's own db connection
 
-	GetLogger() *gologger.Logger
+	GetLogger() gologger.LoggerI
 
 	Connect(
 		// depending on Address, DNet will decide if connect local or remote
@@ -33,19 +33,12 @@ type ApplicationCommunicator interface {
 		error,
 	)
 
-	// this is excucively for builtin_net module. no any other module should
-	// be able to call it. this should call controller's incomming connections
-	// handeling function
 	ServeConnection(
 		who *Address,
 		conn net.Conn,
 	) error
 
-	GetOtherApplicationInstance(name string) (
-		ApplicationModuleInstance,
-		ApplicationModule,
-		error,
-	)
+	PossiblyNodeDiscovered(address NetworkAddress) error
 
 	GetInnodeRPC(target_app_name string) (*rpc.Client, error)
 }

@@ -2,16 +2,12 @@ package builtin_net_ip
 
 import (
 	//"fmt"
-	"sync"
-
-	"github.com/AnimusPEXUS/worker"
 
 	"github.com/AnimusPEXUS/dnet/common_types"
 )
 
 var (
-	MULTICAST_ADDRESS = "224.0.0.1:5555"
-	DESIGNATED_PORT   = 5555
+	MULTICAST_IP = "224.0.0.1"
 )
 
 type Module struct {
@@ -58,32 +54,5 @@ func (self *Module) Instantiate(com common_types.ApplicationCommunicator) (
 	common_types.ApplicationModuleInstance,
 	error,
 ) {
-
-	//net_mod, ok := application_net.(*builtin_net.Module)
-
-	//ret, err := InstanceNew(application_net)
-
-	ret := &Instance{}
-	ret.com = com
-	ret.mod = self
-	ret.window_show_sync = new(sync.Mutex)
-
-	ret.db = com.GetDBConnection()
-	ret.logger = com.GetLogger()
-
-	ret.tcp_listener = TCPListenerNew(ret)
-	ret.udp_beacon = UDPBeaconNew(ret)
-	ret.udp_listener = UDPListenerNew(ret)
-
-	ret.cfg = &InstanceConfig{}
-	//ret.cfg.SetDefaults()
-	ret.LoadConfig()
-
-	//ret.db = &DB{db: com.GetDBConnection()}
-
-	ret.window_show_sync = &sync.Mutex{}
-
-	ret.Worker = worker.New(ret.threadWorker)
-
-	return ret, nil
+	return NewInstance(self, com)
 }

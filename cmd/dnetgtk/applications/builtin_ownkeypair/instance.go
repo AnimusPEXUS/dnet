@@ -13,12 +13,40 @@ import (
 type Instance struct {
 	*worker.Worker
 	com common_types.ApplicationCommunicator
-	db  *DB
 	mod *Module
+	db  *DB
 
 	window *UIWindow
 
 	window_show_sync *sync.Mutex
+}
+
+func NewInstance(
+	mod *Module,
+	com common_types.ApplicationCommunicator,
+) (*Instance, error) {
+	ret := &Instance{}
+	ret.com = com
+	ret.db = &DB{db: com.GetDBConnection()}
+	ret.mod = mod
+	ret.window_show_sync = new(sync.Mutex)
+
+	t := &OwnData{}
+	if !ret.db.db.HasTable(t) {
+		if err := ret.db.db.CreateTable(t).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	ret.Worker = worker.New(ret.threadWorker)
+
+	return ret, nil
+}
+
+func (self *Instance) Connect(
+	address common_types.NetworkAddress,
+) (*net.Conn, error) {
+	return nil, errors.New("not implimented")
 }
 
 func (self *Instance) threadWorker(
